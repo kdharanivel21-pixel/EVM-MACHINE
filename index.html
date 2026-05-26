@@ -6,21 +6,47 @@
 <title>EVM Voting</title>
 
 <style>
-body{font-family:Arial;background:#f2f2f2;margin:0}
-.container{max-width:900px;margin:auto;padding:20px}
-.card{background:white;padding:20px;border-radius:10px;margin-bottom:20px}
-.hidden{display:none}
 
-input{padding:10px;width:100%;max-width:300px;margin:5px 0}
-button{
+body{
+font-family:Arial;
+background:#f2f2f2;
+margin:0;
+}
+
+.container{
+max-width:900px;
+margin:auto;
+padding:20px;
+}
+
+.card{
+background:white;
+padding:20px;
+border-radius:10px;
+margin-bottom:20px;
+}
+
+.hidden{
+display:none;
+}
+
+input{
 padding:10px;
+width:100%;
+max-width:300px;
+margin:5px 0;
+border:1px solid #ccc;
+border-radius:6px;
+}
+
+button{
+padding:10px 15px;
 border:none;
 border-radius:6px;
 cursor:pointer;
 font-weight:bold;
 }
 
-/* PARTY STYLE */
 .party{
 display:flex;
 justify-content:space-between;
@@ -43,18 +69,43 @@ height:55px;
 border-radius:6px;
 }
 
-/* COLORS */
-.tvk{border-color:red; background:linear-gradient(red, yellow, red);}
-.bjp{border-color:orange; background:linear-gradient(orange, green);}
-.ntk{border-color:green; background:green;color:white;}
-.aiadmk{border-color:black; background:linear-gradient(white, black, red);}
-.dmk{border-color:black; background:linear-gradient(black, red); color:white;}
-.congress{border-color:green; background:linear-gradient(orange, white, green);}
+.tvk{
+border-color:red;
+background:linear-gradient(red,yellow,red);
+}
 
-/* SUCCESS POPUP */
+.bjp{
+border-color:orange;
+background:linear-gradient(orange,green);
+}
+
+.ntk{
+border-color:green;
+background:green;
+color:white;
+}
+
+.aiadmk{
+border-color:black;
+background:linear-gradient(white,black,red);
+color:white;
+}
+
+.dmk{
+border-color:black;
+background:linear-gradient(black,red);
+color:white;
+}
+
+.congress{
+border-color:green;
+background:linear-gradient(orange,white,green);
+}
+
 .popup{
 position:fixed;
-top:0;left:0;
+top:0;
+left:0;
 width:100%;
 height:100%;
 background:rgba(0,0,0,0.7);
@@ -66,16 +117,25 @@ font-size:20px;
 text-align:center;
 z-index:999;
 }
+
 .popup-box{
 background:#111;
 padding:20px;
 border-radius:10px;
 animation:pop 0.4s ease;
 }
+
 @keyframes pop{
-from{transform:scale(0.5);opacity:0}
-to{transform:scale(1);opacity:1}
+from{
+transform:scale(0.5);
+opacity:0;
 }
+to{
+transform:scale(1);
+opacity:1;
+}
+}
+
 </style>
 </head>
 
@@ -84,85 +144,110 @@ to{transform:scale(1);opacity:1}
 <div class="container">
 
 <!-- LOGIN -->
+
 <div id="loginPage" class="card">
+
 <h2>Vote Login</h2>
 
 <input id="name" placeholder="Enter Name">
-<input id="phone" placeholder="Enter Phone">
 
-<button type="button" onclick="login()">Next</button>
+<input id="phone" maxlength="10" placeholder="Enter 10 Digit Mobile Number">
+
+<br><br>
+
+<button onclick="login()">
+Next
+</button>
+
 </div>
 
-<!-- VOTE -->
+<!-- VOTE PAGE -->
+
 <div id="votePage" class="card hidden">
+
 <h2>Select Party</h2>
 
 <div class="party tvk">
 <img src="TVK.png">
 TVK
-<button type="button" onclick="vote('TVK')">Vote</button>
+<button onclick="vote('TVK')">Vote</button>
 </div>
 
 <div class="party bjp">
 <img src="BJP.png">
 BJP
-<button type="button" onclick="vote('BJP')">Vote</button>
+<button onclick="vote('BJP')">Vote</button>
 </div>
 
 <div class="party ntk">
 <img src="NTK.png">
 NTK
-<button type="button" onclick="vote('NTK')">Vote</button>
+<button onclick="vote('NTK')">Vote</button>
 </div>
 
 <div class="party aiadmk">
 <img src="download.png">
 AIADMK
-<button type="button" onclick="vote('AIADMK')">Vote</button>
+<button onclick="vote('AIADMK')">Vote</button>
 </div>
 
 <div class="party dmk">
 <img src="ab67616d00001e020d81ad345f19fec38d26cefc.png">
 DMK
-<button type="button" onclick="vote('DMK')">Vote</button>
+<button onclick="vote('DMK')">Vote</button>
 </div>
 
 <div class="party congress">
 <img src="CONGRESS.png">
 CONGRESS
-<button type="button" onclick="vote('CONGRESS')">Vote</button>
+<button onclick="vote('CONGRESS')">Vote</button>
 </div>
 
 </div>
 
 </div>
 
-<!-- SUCCESS POPUP -->
+<!-- POPUP -->
+
 <div id="popup" class="popup">
+
 <div class="popup-box">
+
 <h2>✅ SUCCESSFULLY VOTED</h2>
+
 <p id="msg"></p>
+
 </div>
+
 </div>
 
 <script type="module">
 
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { initializeApp }
+
+from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 
 import {
+
 getDatabase,
 ref,
-set
-} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+set,
+get,
+child
 
-/* FIREBASE CONFIG */
+}
+
+from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+
+/* FIREBASE */
+
 const firebaseConfig = {
 
 apiKey: "AlzaSyBfl8J102JW32RX7Yrl5qbuDJFRLx09bWg",
 
 authDomain: "evm-2026.firebaseapp.com",
 
-databaseURL: "https://YOUR_PROJECT-default-rtdb.firebaseio.com",
+databaseURL: "https://evm-2026-default-rtdb.firebaseio.com",
 
 projectId: "evm-2026",
 
@@ -173,28 +258,48 @@ messagingSenderId: "84858882020",
 appId: "1:84858882020:web:d7fa3af139259f270729f1"
 
 };
-// Initialize Firebase
+
 const app = initializeApp(firebaseConfig);
+
 const db = getDatabase(app);
 
 /* LOGIN */
+
 window.login = function(){
 
-let name=document.getElementById("name").value.trim();
+let name = document.getElementById("name").value.trim();
 
-let phone=document.getElementById("phone").value.trim();
+let phone = document.getElementById("phone").value.trim();
 
 phone = phone.replace(/\D/g,'');
 
-if(!name || phone.length !== 10){
+if(name === ""){
 
-alert("Enter valid details");
+alert("Enter Name");
 
 return;
 
 }
 
-localStorage.setItem("user",JSON.stringify({name,phone}));
+if(phone.length !== 10){
+
+alert("Enter Valid 10 Digit Mobile Number");
+
+return;
+
+}
+
+localStorage.setItem("user",
+
+JSON.stringify({
+
+name:name,
+
+phone:phone
+
+})
+
+);
 
 document.getElementById("loginPage").classList.add("hidden");
 
@@ -203,6 +308,7 @@ document.getElementById("votePage").classList.remove("hidden");
 }
 
 /* VOTE */
+
 window.vote = async function(party){
 
 try{
@@ -211,33 +317,64 @@ let user = JSON.parse(localStorage.getItem("user"));
 
 if(!user){
 
-alert("Login first");
+alert("Login First");
 
 return;
 
 }
 
-await set(ref(db,"users/"+user.phone),{
+/* CHECK ALREADY VOTED */
+
+const snapshot = await get(
+
+child(ref(db),"users/" + user.phone)
+
+);
+
+if(snapshot.exists()){
+
+alert("This Mobile Number Already Voted");
+
+return;
+
+}
+
+/* SAVE DATA */
+
+await set(
+
+ref(db,"users/" + user.phone),
+
+{
 
 name:user.name,
 
 phone:user.phone,
 
-vote:party
+vote:party,
+time:new Date().toLocaleString()
 
-});
+}
 
-/* POPUP */
+);
+
+/* SUCCESS POPUP */
+
 document.getElementById("msg").innerHTML =
 
-`Name: ${user.name}<br>
-Phone: ${user.phone}<br>
-Party: ${party}`;
+"Name : " + user.name +
 
-document.getElementById("popup").style.display="flex";
+"<br><br>Phone : " + user.phone +
 
-/* AUTO RESET AFTER 2 SEC */
+"<br><br>Party : " + party;
+
+document.getElementById("popup").style.display = "flex";
+
+/* RESET */
+
 setTimeout(()=>{
+
+localStorage.clear();
 
 location.reload();
 
