@@ -1,0 +1,216 @@
+<script type="module">
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import {
+getDatabase,
+ref,
+get,
+set,
+remove
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+
+/* FIREBASE CONFIG */
+const firebaseConfig = {
+apiKey: "YOUR_API_KEY",
+authDomain: "YOUR_PROJECT.firebaseapp.com",
+databaseURL: "https://YOUR_PROJECT-default-rtdb.firebaseio.com",
+projectId: "YOUR_PROJECT",
+storageBucket: "YOUR_PROJECT.appspot.com",
+messagingSenderId: "YOUR_ID",
+appId: "YOUR_APP_ID"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+
+/* DATA */
+let votes = {};
+let users = {};
+let requests = {};
+
+/* LOAD DATA */
+async function loadData(){
+const v = await get(ref(db,"votes"));
+const u = await get(ref(db,"users"));
+const r = await get(ref(db,"requests"));
+
+votes = v.exists() ? v.val() : {};
+users = u.exists() ? u.val() : {};
+requests = r.exists() ? r.val() : {};
+}
+
+/* PARTIES (same UI) */
+const parties=[
+{name:"TVK",class:"tvk",logo:"https://pbs.twimg.com/media/G_Qbc9sWEAAINa1.png"},
+{name:"NTK",class:"ntk",logo:"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTlDClR8J3uGe0kQObGwbeg2wYZrvCAeCWzWw&s"},
+{name:"BJP",class:"bjp",logo:"https://upload.wikimedia.org/wikipedia/commons/e/e8/BJP_election_symbol.png"},
+{name:"AIADMK",class:"aiadmk",logo:"https://upload.wikimedia.org/wikipedia/commons/thumb/4/42/AIADMK_Two_Leaves.png/1280px-AIADMK_Two_Leaves.png"},
+{name:"DMK",class:"dmk",logo:"https://hindi.starsunfolded.com/wp-content/uploads/2018/08/DMK.jpg"},
+{name:"CONGRESS",class:"congress",logo:"https://upload.wikimedia.org/wikipedia/commons/thumb/d/d9/INC_Hand.svg/500px-INC_Hand.svg.png"}
+];
+
+/* LOGIN */
+window.login = async function(){
+
+let name=document.getElementById("name").value.trim();
+let phone=document.getElementById("phone").value.trim();
+
+if(!name || !phone){
+alert("Fill all fields");
+return;
+}
+
+phone = phone.replace(/\D/g,'');
+if(phone.length !== 10){
+alert("Invalid phone number");
+return;
+}
+
+await loadData();
+
+/* SAVE USER */
+if(!users[phone]){
+users[phone] = {
+name,
+phone,
+voteCount:0,
+lastVote:"",
+approved:false
+};
+}
+
+localStorage.setItem("user",JSON.stringify({name,phone}));
+
+document.getElementById("login").classList.add("hidden");
+document.getElementById("votePage").classList.remove("hidden");
+
+showParties();
+};
+
+/* SHOW PARTIES */
+function showParties(){
+let c=document.getElementById("parties");
+c.innerHTML="";
+
+parties.forEach(p=>{
+let d=document.createElement("div");
+d.className="party "+p.class;
+d.innerHTML=`
+<div>${p.name}<br><small>➡️ Click to vote</small></div>
+<div class="symbol"><img src="${p.logo}"></div>
+`;
+d.onclick=()=>vote(p.name);
+c.appendChild(d);
+});
+}
+
+/* VOTE SYSTEM */
+window.vote = async function(party){
+
+let user=JSON.parse(localStorage.getItem("user"));
+let phone=user.phone;
+
+await loadData();
+
+let u = users[phone];
+
+/* FIRST VOTE */
+if(!u.voteCount || u.voteCount === 0){
+
+votes[party] = (votes[party]||0)+1;
+
+u.voteCount = 1;
+u.lastVote = party;
+
+alert("Vote Successful ✅");
+}
+
+/* SECOND VOTE → NEED APPROVAL */
+else if(u.voteCount >= 1 && !u.approved){
+
+requests[phone] = {
+name:user.name,
+phone,
+requestedParty:party,
+status:"PENDING"
+};
+
+await set(ref(db,"requests"),requests);
+
+alert("Second vote sent for ADMIN approval ❗");
+return;
+}
+
+/* IF APPROVED */
+else if(u.approved){
+
+votes[party] = (votes[party]||0)+1;
+
+u.lastVote = party;
+
+alert("Vote Updated after approval ✅");
+}
+
+users[phone] = u;
+
+await set(ref(db,"votes"),votes);
+await set(ref(db,"users"),users);
+await set(ref(db,"requests"),requests);
+
+location.reload();
+};
+
+/* ADMIN PANEL */
+window.adminAccess = async function(){
+
+let pass=prompt("Enter Admin Password:");
+if(pass!=="admin12345"){
+alert("Wrong password");
+return;
+}
+
+document.getElementById("resultPage").classList.remove("hidden");
+await showResults();
+};
+
+/* RESULTS + WINNER */
+async function showResults(){
+
+await loadData();
+
+let sorted = Object.entries(votes).sort((a,b)=>b[1]-a[1]);
+
+let r=document.getElementById("results");
+r.innerHTML="";
+
+sorted.forEach((v,i)=>{
+let d=document.createElement("div");
+d.className="result-item "+(i==0?"top1":i==1?"top2":i==2?"top3":"");
+d.innerHTML=`${i+1}. ${v[0]} - ${v[1]} votes`;
+r.appendChild(d);
+});
+
+/* SAVE WINNER */
+await set(ref(db,"winners"),{
+first:sorted[0]||null,
+second:sorted[1]||null,
+third:sorted[2]||null,
+updated:new Date().toString()
+});
+}
+
+/* CLEAR ALL */
+window.clearVotes = async function(){
+
+if(!confirm("Clear all data?")) return;
+
+await remove(ref(db,"votes"));
+await remove(ref(db,"users"));
+await remove(ref(db,"requests"));
+await remove(ref(db,"winners"));
+
+localStorage.clear();
+location.reload();
+};
+
+</script>
