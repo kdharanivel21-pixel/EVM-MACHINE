@@ -69,6 +69,8 @@ height:55px;
 border-radius:6px;
 }
 
+/* PARTY COLORS */
+
 .tvk{
 border-color:red;
 background:linear-gradient(red,yellow,red);
@@ -101,6 +103,8 @@ color:white;
 border-color:green;
 background:linear-gradient(orange,white,green);
 }
+
+/* POPUP */
 
 .popup{
 position:fixed;
@@ -149,9 +153,20 @@ opacity:1;
 
 <h2>Vote Login</h2>
 
-<input id="name" placeholder="Enter Name">
+<input
+type="text"
+id="name"
+placeholder="Enter Name"
+required
+>
 
-<input id="phone" maxlength="10" placeholder="Enter 10 Digit Mobile Number">
+<input
+type="tel"
+id="phone"
+placeholder="Enter 10 Digit Mobile Number"
+maxlength="10"
+required
+>
 
 <br><br>
 
@@ -161,7 +176,7 @@ Next
 
 </div>
 
-<!-- VOTE PAGE -->
+<!-- VOTING PAGE -->
 
 <div id="votePage" class="card hidden">
 
@@ -207,7 +222,7 @@ CONGRESS
 
 </div>
 
-<!-- POPUP -->
+<!-- SUCCESS POPUP -->
 
 <div id="popup" class="popup">
 
@@ -222,46 +237,24 @@ CONGRESS
 </div>
 
 <script type="module">
+  // Import the functions you need from the SDKs you need
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
+  // TODO: Add SDKs for Firebase products that you want to use
+  // https://firebase.google.com/docs/web/setup#available-libraries
 
-import { initializeApp }
+  // Your web app's Firebase configuration
+  const firebaseConfig = {
+    apiKey: "AIzaSyBfl8J102JW32RX7Yrl5qbuDJFRLx09bWg",
+    authDomain: "evm-2026.firebaseapp.com",
+    projectId: "evm-2026",
+    storageBucket: "evm-2026.firebasestorage.app",
+    messagingSenderId: "84858882020",
+    appId: "1:84858882020:web:d7fa3af139259f270729f1"
+  };
 
-from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-
-import {
-
-getDatabase,
-ref,
-set,
-get,
-child
-
-}
-
-from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
-
-/* FIREBASE */
-
-const firebaseConfig = {
-
-apiKey: "AlzaSyBfl8J102JW32RX7Yrl5qbuDJFRLx09bWg",
-
-authDomain: "evm-2026.firebaseapp.com",
-
-databaseURL: "https://evm-2026-default-rtdb.firebaseio.com",
-
-projectId: "evm-2026",
-
-storageBucket: "evm-2026.firebasestorage.app",
-
-messagingSenderId: "84858882020",
-
-appId: "1:84858882020:web:d7fa3af139259f270729f1"
-
-};
-
-const app = initializeApp(firebaseConfig);
-
-const db = getDatabase(app);
+  // Initialize Firebase
+  const app = initializeApp(firebaseConfig);
+</script>
 
 /* LOGIN */
 
@@ -289,7 +282,11 @@ return;
 
 }
 
-localStorage.setItem("user",
+/* SAVE USER */
+
+localStorage.setItem(
+
+"user",
 
 JSON.stringify({
 
@@ -300,6 +297,8 @@ phone:phone
 })
 
 );
+
+/* SHOW VOTING */
 
 document.getElementById("loginPage").classList.add("hidden");
 
@@ -323,23 +322,7 @@ return;
 
 }
 
-/* CHECK ALREADY VOTED */
-
-const snapshot = await get(
-
-child(ref(db),"users/" + user.phone)
-
-);
-
-if(snapshot.exists()){
-
-alert("This Mobile Number Already Voted");
-
-return;
-
-}
-
-/* SAVE DATA */
+/* SAVE TO FIREBASE */
 
 await set(
 
@@ -352,13 +335,14 @@ name:user.name,
 phone:user.phone,
 
 vote:party,
+
 time:new Date().toLocaleString()
 
 }
 
 );
 
-/* SUCCESS POPUP */
+/* SUCCESS MESSAGE */
 
 document.getElementById("msg").innerHTML =
 
@@ -384,7 +368,7 @@ location.reload();
 
 console.log(error);
 
-alert("Firebase Error");
+alert("Firebase Error : " + error.message);
 
 }
 
