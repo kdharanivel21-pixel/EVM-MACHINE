@@ -198,7 +198,41 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getFirestore, collection, addDoc, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-[01/06/2026 12:02 PM] K.Dharshini K.Dharshini: const firebaseConfig = {
+[01/06/2026 12:49 PM] Amma: <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EVM 2026 Voting System</title>
+    <!-- Include Firebase and SweetAlert via CDN -->
+    <script src="https://www.gstatic.com/firebasejs/10.x.x/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.x.x/firebase-firestore-compat.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
+<body>
+
+    <!-- Page 1: Voter Verification -->
+    <div id="page1">
+        <h2>Voter Verification</h2>
+        <input type="text" id="vName" placeholder="Enter Name">
+        <input type="text" id="vPhone" placeholder="Enter 10-digit Phone">
+        <button onclick="verifyVoter()">Verify & Proceed</button>
+    </div>
+
+    <!-- Page 2: Voting Page -->
+    <div id="page2" class="hidden">
+        <h2>Select Your Party</h2>
+        <button onclick="submitVote('Party A')">Party A</button>
+        <button onclick="submitVote('Party B')">Party B</button>
+        
+        <!-- Footer Info -->
+        <div style="margin-top: 50px; font-size: 0.8em; color: #888; text-align: center;">
+            <p>Created by: Dharanivel</p>
+        </div>
+    </div>
+
+    <script>
+        const firebaseConfig = {
             apiKey: "AIzaSyBfl8J102JW32RX7Yrl5qbuDJFRLx09bWg",
             authDomain: "evm-2026.firebaseapp.com",
             projectId: "evm-2026",
@@ -207,8 +241,9 @@
             appId: "1:84858882020:web:d7fa3af139259f270729f1"
         };
 
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
+        // Initialize Firebase
+        const app = firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
 
         let voterInfo = {};
 
@@ -221,21 +256,22 @@
                 return;
             }
 
-            const q = query(collection(db, "votes"), where("phone", "==", phone));
-            const snap = await getDocs(q);
+            const q = db.collection("votes").where("phone", "==", phone);
+            const snap = await q.get();
+            
             if(!snap.empty) {
                 Swal.fire('Warning', 'Already Voted', 'warning');
                 return;
             }
 
             voterInfo = { name, phone };
-            document.getElementById('page1').classList.add('hidden');
-            document.getElementById('page2').classList.remove('hidden');
+            document.getElementById('page1').style.display = 'none';
+            document.getElementById('page2').style.display = 'block';
         };
 
         window.submitVote = async (party) => {
             try {
-                await addDoc(collection(db, "votes"), {
+                await db.collection("votes").add({
                     voter: voterInfo.name,
                     phone: voterInfo.phone,
                     party: party,
@@ -244,15 +280,21 @@
 
                 Swal.fire({
                     title: 'VOTED ✓',
-                    text: party,
+                    text: 'You voted for ' + party,
                     icon: 'success',
                     timer: 2000,
                     showConfirmButton: false
                 }).then(() => location.reload());
             } catch (e) {
                 console.error(e);
+                Swal.fire('Error', 'Submission failed', 'error');
             }
         };
     </script>
+
+    <style>
+        .hidden { display: none; }
+        body { font-family: sans-serif; padding: 20px; }
+    </style>
 </body>
 </html>
