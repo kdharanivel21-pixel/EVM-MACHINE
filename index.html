@@ -1,423 +1,125 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>EVM Voting</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EVM 2026 - Student Learning Project</title>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        body { font-family: 'Arial', sans-serif; background: #2f3640; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
+        .container { background: #dcdde1; padding: 25px; border-radius: 10px; box-shadow: 0 15px 35px rgba(0,0,0,0.5); width: 95%; max-width: 900px; text-align: center; border: 4px solid #000; }
+        .hidden { display: none; }
+        
+        /* Registration Page */
+        input { width: 80%; padding: 15px; margin: 10px 0; border: 2px solid #7f8c8d; border-radius: 5px; font-size: 18px; text-align: center; }
+        .start-btn { padding: 15px 40px; background: #27ae60; color: white; border: none; border-radius: 5px; font-size: 20px; cursor: pointer; font-weight: bold; }
 
-<style>
+        /* EVM Layout */
+        .ballot-box { margin-top: 20px; border: 2px solid #000; background: #95a5a6; padding: 10px; }
+        .party-row { background: white; height: 100px; border: 3px solid black; display: flex; align-items: center; margin-bottom: 8px; border-radius: 4px; overflow: hidden; }
+        
+        .col-symbol { width: 110px; height: 100%; border-right: 3px solid black; background: white; display: flex; align-items: center; justify-content: center; }
+        .col-symbol img { width: 85%; height: 85%; object-fit: contain; }
+        
+        .col-name { flex-grow: 1; height: 100%; border-right: 3px solid black; display: flex; align-items: center; padding-left: 25px; font-size: 28px; font-weight: 900; color: white; text-shadow: 2px 2px 5px #000; }
+        
+        .col-btn { width: 130px; height: 100%; display: flex; align-items: center; justify-content: center; background: #bdc3c7; }
 
-body{
-font-family:Arial;
-background:#f2f2f2;
-margin:0;
-}
+        /* Vote Button & Click Effect */
+        .vote-btn { width: 80px; height: 50px; background: #0984e3; border-radius: 6px; border: 3px solid #000; cursor: pointer; box-shadow: 0 5px #0652dd; }
+        .vote-btn:active { background: #ff4757 !important; box-shadow: 0 0px #0652dd; transform: translateY(5px); }
 
-.container{
-max-width:900px;
-margin:auto;
-padding:20px;
-}
-
-.card{
-background:white;
-padding:20px;
-border-radius:10px;
-margin-bottom:20px;
-}
-
-.hidden{
-display:none;
-}
-
-input{
-padding:10px;
-width:100%;
-max-width:300px;
-margin:5px 0;
-border:1px solid #ccc;
-border-radius:6px;
-}
-
-button{
-padding:10px 15px;
-border:none;
-border-radius:6px;
-cursor:pointer;
-font-weight:bold;
-}
-
-.party{
-display:flex;
-justify-content:space-between;
-align-items:center;
-padding:12px;
-margin:10px 0;
-border-radius:10px;
-border:3px solid;
-transition:0.3s;
-}
-
-.party:hover{
-transform:scale(1.02);
-box-shadow:0 0 10px rgba(0,0,0,0.2);
-}
-
-img{
-width:55px;
-height:55px;
-border-radius:6px;
-}
-
-/* PARTY COLORS */
-
-.tvk{
-border-color:red;
-background:linear-gradient(red,yellow,red);
-}
-
-.bjp{
-border-color:orange;
-background:linear-gradient(orange,green);
-}
-
-.ntk{
-border-color:green;
-background:green;
-color:white;
-}
-
-.aiadmk{
-border-color:black;
-background:linear-gradient(white,black,red);
-color:white;
-}
-
-.dmk{
-border-color:black;
-background:linear-gradient(black,red);
-color:white;
-}
-
-.congress{
-border-color:green;
-background:linear-gradient(orange,white,green);
-}
-
-/* POPUP */
-
-.popup{
-position:fixed;
-top:0;
-left:0;
-width:100%;
-height:100%;
-background:rgba(0,0,0,0.7);
-display:none;
-justify-content:center;
-align-items:center;
-color:white;
-font-size:20px;
-text-align:center;
-z-index:999;
-}
-
-.popup-box{
-background:#111;
-padding:20px;
-border-radius:10px;
-animation:pop 0.4s ease;
-}
-
-@keyframes pop{
-
-from{
-transform:scale(0.5);
-opacity:0;
-}
-
-to{
-transform:scale(1);
-opacity:1;
-}
-
-}
-
-</style>
+        /* Flags */
+        .tvk-flag { background: linear-gradient(to bottom, #800000 33%, #FFD700 33%, #FFD700 66%, #800000 66%); }
+        .bjp-flag { background: linear-gradient(to bottom, #F47216 50%, #00A650 50%); }
+        .ntk-flag { background: radial-gradient(circle, #FFFF00 20%, #008000 100%); }
+        .aiadmk-flag { background: linear-gradient(to bottom, #ffffff 33%, #000000 33%, #000000 66%, #ff0000 66%); }
+        .dmk-flag { background: linear-gradient(to bottom, #000000 50%, #ff0000 50%); }
+        .inc-flag { background: linear-gradient(to bottom, #FF9933 33%, #ffffff 33%, #ffffff 66%, #128807 66%); }
+    </style>
 </head>
-
 <body>
 
-<div class="container">
-
-<!-- LOGIN -->
-
-<div id="loginPage" class="card">
-
-<h2>Vote Login</h2>
-
-<input
-type="text"
-id="name"
-placeholder="Enter Name"
->
-
-<input
-type="tel"
-id="phone"
-maxlength="10"
-placeholder="Enter 10 Digit Mobile Number"
->
-
-<br><br>
-
-<button onclick="login()">
-Next
-</button>
-
-</div>
-
-<!-- VOTE PAGE -->
-
-<div id="votePage" class="card hidden">
-
-<h2>Select Party</h2>
-
-<div class="party tvk">
-<img src="TVK.png">
-TVK
-<button onclick="vote('TVK')">Vote</button>
-</div>
-
-<div class="party bjp">
-<img src="BJP.png">
-BJP
-<button onclick="vote('BJP')">Vote</button>
-</div>
-
-<div class="party ntk">
-<img src="NTK.png">
-NTK
-<button onclick="vote('NTK')">Vote</button>
-</div>
-
-<div class="party aiadmk">
-<img src="download.png">
-AIADMK
-<button onclick="vote('AIADMK')">Vote</button>
-</div>
-
-<div class="party dmk">
-<img src="ab67616d00001e020d81ad345f19fec38d26cefc.png">
-DMK
-<button onclick="vote('DMK')">Vote</button>
-</div>
-
-<div class="party congress">
-<img src="CONGRESS.png">
-CONGRESS
-<button onclick="vote('CONGRESS')">Vote</button>
-</div>
-
-</div>
-
-</div>
-
-<!-- SUCCESS POPUP -->
-
-<div id="popup" class="popup">
-
-<div class="popup-box">
-
-<h2>✅ SUCCESSFULLY VOTED</h2>
-
-<p id="msg"></p>
-
-</div>
-
-</div>
-
-<!-- FIREBASE -->
-
-<script type="module">
-
-import { initializeApp }
-
-from "https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
-
-import {
-
-getDatabase,
-ref,
-set,
-get,
-child
-
-}
-
-from "https://www.gstatic.com/firebasejs/12.13.0/firebase-database.js";
-
-/* FIREBASE CONFIG */
-
-const firebaseConfig = {
-
-apiKey: "AIzaSyBfl8J102JW32RX7Yrl5qbuDJFRLx09bWg",
-
-authDomain: "evm-2026.firebaseapp.com",
-
-databaseURL: "https://evm-2026-default-rtdb.firebaseio.com",
-
-projectId: "evm-2026",
-
-storageBucket: "evm-2026.firebasestorage.app",
-
-messagingSenderId: "84858882020",
-
-appId: "1:84858882020:web:d7fa3af139259f270729f1"
-
-};
-
-/* INITIALIZE */
-
-const app = initializeApp(firebaseConfig);
-
-const db = getDatabase(app);
-
-/* LOGIN */
-
-window.login = function(){
-
-let name = document.getElementById("name").value.trim();
-
-let phone = document.getElementById("phone").value.trim();
-
-phone = phone.replace(/\D/g,'');
-
-if(name === ""){
-
-alert("Enter Name");
-
-return;
-
-}
-
-if(phone.length !== 10){
-
-alert("Enter Valid 10 Digit Mobile Number");
-
-return;
-
-}
-
-/* SAVE USER */
-
-localStorage.setItem(
-
-"user",
-
-JSON.stringify({
-
-name:name,
-
-phone:phone
-
-})
-
-);
-
-/* SHOW VOTING PAGE */
-
-document.getElementById("loginPage").classList.add("hidden");
-
-document.getElementById("votePage").classList.remove("hidden");
-
-}
-
-/* VOTE FUNCTION */
-
-window.vote = async function(party){
-
-try{
-
-let user = JSON.parse(localStorage.getItem("user"));
-
-if(!user){
-
-alert("Login First");
-
-return;
-
-}
-
-/* CHECK ALREADY VOTED */
-
-const snapshot = await get(
-
-child(ref(db),"users/" + user.phone)
-
-);
-
-if(snapshot.exists()){
-
-alert("This Mobile Number Already Voted");
-
-return;
-
-}
-
-/* SAVE TO FIREBASE */
-
-await set(
-
-ref(db,"users/" + user.phone),
-
-{
-
-name:user.name,
-
-phone:user.phone,
-
-vote:party,
-
-time:new Date().toLocaleString()
-
-}
-
-);
-
-/* SUCCESS POPUP */
-
-document.getElementById("msg").innerHTML =
-
-"Name : " + user.name +
-
-"<br><br>Phone : " + user.phone +
-
-"<br><br>Party : " + party;
-
-document.getElementById("popup").style.display = "flex";
-
-/* AUTO RESET */
-
-setTimeout(()=>{
-
-localStorage.clear();
-
-location.reload();
-
-},2000);
-
-}catch(error){
-
-console.log(error);
-
-alert("Firebase Error : " + error.message);
-
-}
-
-}
-
-</script>
-
+    <div id="page1" class="container">
+        <h1>VOTER VERIFICATION</h1>
+        <input type="text" id="voterName" placeholder="Enter Name">
+        <input type="tel" id="voterPhone" placeholder="10 Digit Phone Number" maxlength="10" oninput="this.value=this.value.replace(/[^0-9]/g,'')">
+        <br><br>
+        <button class="start-btn" onclick="verifyVoter()">PROCEED</button>
+    </div>
+
+    <div id="page2" class="container hidden">
+        <h2>BALLOT UNIT</h2>
+        <div class="ballot-box">
+            <div class="party-row"><div class="col-symbol"><img src="TVK.png.png"></div><div class="col-name tvk-flag">TVK</div><div class="col-btn"><button class="vote-btn" onclick="submitVote('TVK')"></button></div></div>
+            <div class="party-row"><div class="col-symbol"><img src="BJP.png"></div><div class="col-name bjp-flag">BJP</div><div class="col-btn"><button class="vote-btn" onclick="submitVote('BJP')"></button></div></div>
+            <div class="party-row"><div class="col-symbol"><img src="NTK.png"></div><div class="col-name ntk-flag">NTK</div><div class="col-btn"><button class="vote-btn" onclick="submitVote('NTK')"></button></div></div>
+            <div class="party-row"><div class="col-symbol"><img src="download.png"></div><div class="col-name aiadmk-flag">AIADMK</div><div class="col-btn"><button class="vote-btn" onclick="submitVote('AIADMK')"></button></div></div>
+            <div class="party-row"><div class="col-symbol"><img src="ab67616d00001e020d81ad345f19fec38d26cefc.png"></div><div class="col-name dmk-flag">DMK</div><div class="col-btn"><button class="vote-btn" onclick="submitVote('DMK')"></button></div></div>
+            <div class="party-row"><div class="col-symbol"><img src="CONGRESS.png"></div><div class="col-name inc-flag" style="color:black; text-shadow:none;">CONGRESS</div><div class="col-btn"><button class="vote-btn" onclick="submitVote('CONGRESS')"></button></div></div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getFirestore, collection, addDoc, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBfl8J102JW32RX7Yrl5qbuDJFRLx09bWg",
+            authDomain: "evm-2026.firebaseapp.com",
+            projectId: "evm-2026",
+            storageBucket: "evm-2026.firebasestorage.app",
+            messagingSenderId: "84858882020",
+            appId: "1:84858882020:web:d7fa3af139259f270729f1"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        let currentVoter = {};
+
+        window.verifyVoter = async () => {
+            const name = document.getElementById('voterName').value;
+            const phone = document.getElementById('voterPhone').value;
+
+            if(name.length < 2 || phone.length !== 10) {
+                alert("Enter valid details");
+                return;
+            }
+
+            // Check if phone number already voted
+            const q = query(collection(db, "votes"), where("phone", "==", phone));
+            const snap = await getDocs(q);
+            if(!snap.empty) {
+                Swal.fire('Already Voted', 'This number has already been used.', 'error');
+                return;
+            }
+
+            currentVoter = { name, phone };
+            document.getElementById('page1').classList.add('hidden');
+            document.getElementById('page2').classList.remove('hidden');
+        };
+
+        window.submitVote = async (party) => {
+            try {
+                // Save Name, Phone, and Party to Firebase
+                await addDoc(collection(db, "votes"), {
+                    voterName: currentVoter.name,
+                    phone: currentVoter.phone,
+                    votedParty: party,
+                    time: new Date()
+                });
+
+                Swal.fire({
+                    title: 'SUCCESSFULLY VOTED ✓',
+                    icon: 'success',
+                    timer: 2000,
+                    showConfirmButton: false
+                }).then(() => location.reload());
+            } catch (e) {
+                alert("Error: " + e.message);
+            }
+        };
+    </script>
 </body>
 </html>
