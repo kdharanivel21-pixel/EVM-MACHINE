@@ -1,155 +1,149 @@
-<!DOCTYPE html>
+[01/06/2026 12:02 PM] K.Dharshini K.Dharshini: <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>EVM 2026 - Responsive System</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <script src="https://www.gstatic.com/firebasejs/10.x.x/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.x.x/firebase-firestore-compat.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    
     <style>
-        /* Base Adaptive Layout Reset */
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
-        }
-
+        /* Base Styling */
         body { 
-            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); 
+            font-family: 'Segoe UI', Arial, sans-serif; 
+            background: #2c3e50; 
             display: flex; 
             justify-content: center; 
             align-items: center; 
             min-height: 100vh; 
             margin: 0; 
-            padding: 20px;
+            padding: 15px;
+            box-sizing: border-box;
         }
 
         .container { 
-            background: #ffffff; 
-            padding: 40px 30px; 
-            border-radius: 16px; 
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3); 
+            background: #dcdde1; 
+            padding: 15px; 
+            border-radius: 12px; 
+            box-shadow: 0 15px 35px rgba(0,0,0,0.5); 
             width: 100%; 
-            max-width: 480px; /* Perfect reading boundary on PCs, auto-collapses on phones */
+            max-width: 800px; /* PC Limit */
             text-align: center; 
-            transition: all 0.3s ease;
+            border: 4px solid #000;
+            box-sizing: border-box;
         }
 
-        .hidden { display: none !important; }
+        .hidden { display: none; }
 
-        /* Modernized Page 1 Layout */
-        .reg-card h1 {
-            color: #0f172a;
-            font-size: 1.8rem;
-            font-weight: 700;
-            letter-spacing: -0.5px;
-            margin-bottom: 8px;
-            text-transform: uppercase;
-        }
-
-        .reg-card p {
-            color: #64748b;
-            font-size: 0.95rem;
-            margin-bottom: 32px;
-            line-height: 1.5;
-        }
-
-        .input-wrapper {
-            text-align: left;
-            margin-bottom: 20px;
-        }
-
-        .input-wrapper label {
-            display: block;
-            font-size: 0.8rem;
-            font-weight: 600;
-            color: #475569;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin-bottom: 8px;
-        }
-
+        /* Page 1 Styling */
+        .reg-card { background: white; padding: 20px; border-radius: 8px; border: 2px solid #000; }
         input { 
             width: 100%; 
-            padding: 14px 16px; 
-            margin: 0; 
-            border: 2px solid #e2e8f0; 
-            border-radius: 8px; 
+            max-width: 350px;
+            padding: 12px; 
+            margin: 10px 0; 
+            border: 2px solid #7f8c8d; 
+            border-radius: 6px; 
             font-size: 16px; 
-            color: #0f172a;
-            outline: none;
-            transition: all 0.2s ease;
-            background: #f8fafc;
+            text-align: center;
+            box-sizing: border-box;
         }
-        
-        input:focus {
-            border-color: #3b82f6;
-            background: #ffffff;
-            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
-        }
-
         .start-btn { 
             width: 100%;
-            padding: 16px; 
-            background: #3b82f6; 
+            max-width: 350px;
+            padding: 15px; 
+            background: #27ae60; 
             color: white; 
             border: none; 
-            border-radius: 8px; 
-            font-size: 16px; 
+            border-radius: 6px; 
+            font-size: 18px; 
             cursor: pointer; 
-            font-weight: 600;
-            transition: all 0.2s ease;
-            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
-            margin-top: 12px;
-        }
-
-        .start-btn:hover {
-            background: #2563eb;
-            transform: translateY(-1px);
-            box-shadow: 0 6px 16px rgba(59, 130, 246, 0.3);
-        }
-        
-        .start-btn:active {
-            transform: translateY(1px);
-        }
-
-        /* Page 2 Formatting Preservation */
-        #page2 h2 {
-            font-size: 1.5rem;
-            color: #333;
-            margin-bottom: 20px;
-        }
-
-        #page2 button {
-            display: block;
-            width: 100%;
-            padding: 15px;
-            margin: 10px 0;
-            font-size: 1.1rem;
             font-weight: bold;
-            cursor: pointer;
-            border-radius: 8px;
-            border: 1px solid #ccc;
-            background: #f9f9f9;
-            transition: background 0.2s;
         }
 
-        #page2 button:hover {
-            background: #e9e9e9;
+        /* EVM Layout - Flexbox for Order */
+        .ballot-box { 
+            margin-top: 15px; 
+            border: 2px solid #000; 
+            background: #7f8c8d; 
+            padding: 5px; 
+            border-radius: 4px;
         }
 
-        /* Responsiveness Tweak for Mini-screens */
-        @media (max-width: 400px) {
-            .container {
-                padding: 25px 20px;
-            }
-            .reg-card h1 {
-                font-size: 1.5rem;
-            }
+        .party-row { 
+            background: white; 
+            min-height: 70px; 
+            border: 2px solid black; 
+            display: flex; 
+            align-items: stretch; /* Makes all columns same height */
+            margin-bottom: 5px; 
+            border-radius: 4px; 
+            overflow: hidden; 
+        }
+
+        .col-symbol { 
+            width: 70px; 
+            background: white; 
+            border-right: 2px solid black; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            flex-shrink: 0;
+        }
+        .col-symbol img { width: 85%; height: auto; max-height: 60px; object-fit: contain; }
+
+        .col-name { 
+            flex: 1; /* Takes all available middle space */
+            display: flex; 
+            align-items: center; 
+            padding: 0 10px; 
+            font-size: 20px; 
+            font-weight: 900; 
+            color: white; 
+            text-shadow: 1px 1px 3px #000; 
+            border-right: 2px solid black;
+            word-break: break-word; /* Prevents long names from breaking layout */
+        }
+
+        .col-btn { 
+            width: 90px; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            background: #bdc3c7; 
+            flex-shrink: 0;
+        }
+
+        .vote-btn { 
+            width: 60px; 
+            height: 40px; 
+            background: #0984e3; 
+            border-radius: 6px; 
+            border: 2px solid #000; 
+            cursor: pointer; 
+            box-shadow: 0 4px #0652dd; 
+        }
+        .vote-btn:active { 
+            background: #ff4757 !important; 
+            box-shadow: 0 0px #0652dd; 
+            transform: translateY(3px); 
+        }
+[01/06/2026 12:02 PM] K.Dharshini K.Dharshini: /* Gradients */
+        .tvk-flag { background: linear-gradient(to bottom, #800000 33.3%, #FFD700 33.3%, #FFD700 66.6%, #800000 66.6%); }
+        .bjp-flag { background: linear-gradient(to bottom, #F47216 50%, #00A650 50%); }
+        .ntk-flag { background: radial-gradient(circle, #FFFF00 10%, #008000 100%); }
+        .aiadmk-flag { background: linear-gradient(to bottom, #ffffff 33.3%, #000000 33.3%, #000000 66.6%, #ff0000 66.6%); }
+        .dmk-flag { background: linear-gradient(to bottom, #000000 50%, #ff0000 50%); }
+        .inc-flag { background: linear-gradient(to bottom, #FF9933 33.3%, #ffffff 33.3%, #ffffff 66.6%, #128807 66.6%); }
+
+        /* Tablet/Mobile Fixes */
+        @media (max-width: 600px) {
+            .container { padding: 10px; border-width: 3px; }
+            .col-name { font-size: 15px; }
+            .col-symbol { width: 60px; }
+            .col-btn { width: 75px; }
+            .vote-btn { width: 50px; height: 35px; }
+            .party-row { min-height: 60px; }
+            h1 { font-size: 20px; }
+            h2 { font-size: 18px; }
         }
     </style>
 </head>
@@ -157,35 +151,54 @@
 
     <div id="page1" class="container">
         <div class="reg-card">
-            <h1>EVM Verification</h1>
-            <p>Please enter your credentials access key terminal below.</p>
-            
-            <div class="input-wrapper">
-                <label for="vName">Voter Name</label>
-                <input type="text" id="vName" placeholder="Enter Full Name">
-            </div>
-
-            <div class="input-wrapper">
-                <label for="vPhone">Mobile Authentication</label>
-                <input type="text" id="vPhone" placeholder="Enter 10-digit Phone" maxlength="10">
-            </div>
-            
-            <button class="start-btn" onclick="verifyVoter()">VERIFY & PROCEED</button>
+            <h1>EVM VERIFICATION</h1>
+            <input type="text" id="vName" placeholder="Enter Full Name">
+            <input type="tel" id="vPhone" placeholder="10 Digit Mobile No" maxlength="10">
+            <br>
+            <button class="start-btn" onclick="verifyVoter()">LOGIN TO VOTE</button>
         </div>
     </div>
 
     <div id="page2" class="container hidden">
-        <h2>Select Your Party</h2>
-        <button onclick="submitVote('Party A')">Party A</button>
-        <button onclick="submitVote('Party B')">Party B</button>
-        
-        <div style="margin-top: 50px; font-size: 0.8em; color: #888; text-align: center;">
-            <p>Created by: Dharanivel</p>
+        <h2 style="margin: 5px 0;">BALLOT UNIT</h2>
+        <div class="ballot-box">
+            <div class="party-row">
+                <div class="col-symbol"><img src="TVK.png"></div>
+                <div class="col-name tvk-flag">TVK</div>
+                <div class="col-btn"><button class="vote-btn" onclick="submitVote('TVK')"></button></div>
+            </div>
+            <div class="party-row">
+                <div class="col-symbol"><img src="BJP.png"></div>
+                <div class="col-name bjp-flag">BJP</div>
+                <div class="col-btn"><button class="vote-btn" onclick="submitVote('BJP')"></button></div>
+            </div>
+            <div class="party-row">
+                <div class="col-symbol"><img src="NTK.png"></div>
+                <div class="col-name ntk-flag">NTK</div>
+                <div class="col-btn"><button class="vote-btn" onclick="submitVote('NTK')"></button></div>
+            </div>
+            <div class="party-row">
+                <div class="col-symbol"><img src="download.png"></div>
+                <div class="col-name aiadmk-flag">AIADMK</div>
+                <div class="col-btn"><button class="vote-btn" onclick="submitVote('AIADMK')"></button></div>
+            </div>
+            <div class="party-row">
+                <div class="col-symbol"><img src="ab67616d00001e020d81ad345f19fec38d26cefc.png"></div>
+                <div class="col-name dmk-flag">DMK</div>
+                <div class="col-btn"><button class="vote-btn" onclick="submitVote('DMK')"></button></div>
+            </div>
+            <div class="party-row">
+                <div class="col-symbol"><img src="CONGRESS.png"></div>
+                <div class="col-name inc-flag" style="color:black; text-shadow:none;">CONGRESS</div>
+                <div class="col-btn"><button class="vote-btn" onclick="submitVote('CONGRESS')"></button></div>
+            </div>
         </div>
     </div>
 
-    <script>
-        const firebaseConfig = {
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getFirestore, collection, addDoc, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+[01/06/2026 12:02 PM] K.Dharshini K.Dharshini: const firebaseConfig = {
             apiKey: "AIzaSyBfl8J102JW32RX7Yrl5qbuDJFRLx09bWg",
             authDomain: "evm-2026.firebaseapp.com",
             projectId: "evm-2026",
@@ -194,9 +207,8 @@
             appId: "1:84858882020:web:d7fa3af139259f270729f1"
         };
 
-        // Initialize Firebase
-        const app = firebase.initializeApp(firebaseConfig);
-        const db = firebase.firestore();
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
 
         let voterInfo = {};
 
@@ -209,23 +221,8 @@
                 return;
             }
 
-            // --- ADVANCED FAKE PHONE PATTERN REJECTION ---
-            const repeatedPatterns = /^(\d)\1{9}$/.test(phone); // Blocks instances like 0000000000, 9999999999
-            const sequencePatterns = [
-                "1234567890", "0123456789", "2345678901",
-                "9876543210", "0987654321", "8765432109"
-            ];
-            const isFakeSequence = sequencePatterns.includes(phone);
-
-            if (repeatedPatterns || isFakeSequence) {
-                Swal.fire('Error', 'Enter your Original phone number', 'error');
-                return;
-            }
-            // --- END FAKE DETECTION ---
-
-            const q = db.collection("votes").where("phone", "==", phone);
-            const snap = await q.get();
-            
+            const q = query(collection(db, "votes"), where("phone", "==", phone));
+            const snap = await getDocs(q);
             if(!snap.empty) {
                 Swal.fire('Warning', 'Already Voted', 'warning');
                 return;
@@ -238,7 +235,7 @@
 
         window.submitVote = async (party) => {
             try {
-                await db.collection("votes").add({
+                await addDoc(collection(db, "votes"), {
                     voter: voterInfo.name,
                     phone: voterInfo.phone,
                     party: party,
@@ -247,14 +244,13 @@
 
                 Swal.fire({
                     title: 'VOTED ✓',
-                    text: 'You voted for ' + party,
+                    text: party,
                     icon: 'success',
                     timer: 2000,
                     showConfirmButton: false
                 }).then(() => location.reload());
             } catch (e) {
                 console.error(e);
-                Swal.fire('Error', 'Submission failed', 'error');
             }
         };
     </script>
