@@ -29,6 +29,7 @@
             text-align: center; 
             border: 4px solid #000;
             box-sizing: border-box;
+            position: relative;
         }
 
         .hidden { display: none; }
@@ -126,7 +127,18 @@
             box-shadow: 0 0px #0652dd; 
             transform: translateY(3px); 
         }
-[01/06/2026 12:02 PM] K.Dharshini K.Dharshini: /* Gradients */
+
+        /* Credits Styling */
+        .credit-footer {
+            margin-top: 15px;
+            font-size: 14px;
+            font-weight: bold;
+            color: #2c3e50;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* Gradients */
         .tvk-flag { background: linear-gradient(to bottom, #800000 33.3%, #FFD700 33.3%, #FFD700 66.6%, #800000 66.6%); }
         .bjp-flag { background: linear-gradient(to bottom, #F47216 50%, #00A650 50%); }
         .ntk-flag { background: radial-gradient(circle, #FFFF00 10%, #008000 100%); }
@@ -153,9 +165,9 @@
         <div class="reg-card">
             <h1>EVM VERIFICATION</h1>
             <input type="text" id="vName" placeholder="Enter Full Name">
-            <input type="tel" id="vPhone" placeholder="10 Digit Mobile No" maxlength="10">
+            <input type="tel" id="vPhone" placeholder="10 Digit Mobile No" maxlength="10" oninput="this.value = this.value.replace(/[^0-9]/g, '');">
             <br>
-            <button class="start-btn" onclick="verifyVoter()">LOGIN TO VOTE</button>
+            <button class="start-btn" id="loginBtn">LOGIN TO VOTE</button>
         </div>
     </div>
 
@@ -163,42 +175,44 @@
         <h2 style="margin: 5px 0;">BALLOT UNIT</h2>
         <div class="ballot-box">
             <div class="party-row">
-                <div class="col-symbol"><img src="TVK.png"></div>
+                <div class="col-symbol"><img src="TVK.png" alt="TVK"></div>
                 <div class="col-name tvk-flag">TVK</div>
-                <div class="col-btn"><button class="vote-btn" onclick="submitVote('TVK')"></button></div>
+                <div class="col-btn"><button class="vote-btn" data-party="TVK"></button></div>
             </div>
             <div class="party-row">
-                <div class="col-symbol"><img src="BJP.png"></div>
+                <div class="col-symbol"><img src="BJP.png" alt="BJP"></div>
                 <div class="col-name bjp-flag">BJP</div>
-                <div class="col-btn"><button class="vote-btn" onclick="submitVote('BJP')"></button></div>
+                <div class="col-btn"><button class="vote-btn" data-party="BJP"></button></div>
             </div>
             <div class="party-row">
-                <div class="col-symbol"><img src="NTK.png"></div>
+                <div class="col-symbol"><img src="NTK.png" alt="NTK"></div>
                 <div class="col-name ntk-flag">NTK</div>
-                <div class="col-btn"><button class="vote-btn" onclick="submitVote('NTK')"></button></div>
+                <div class="col-btn"><button class="vote-btn" data-party="NTK"></button></div>
             </div>
             <div class="party-row">
-                <div class="col-symbol"><img src="download.png"></div>
+                <div class="col-symbol"><img src="download.png" alt="AIADMK"></div>
                 <div class="col-name aiadmk-flag">AIADMK</div>
-                <div class="col-btn"><button class="vote-btn" onclick="submitVote('AIADMK')"></button></div>
+                <div class="col-btn"><button class="vote-btn" data-party="AIADMK"></button></div>
             </div>
             <div class="party-row">
-                <div class="col-symbol"><img src="ab67616d00001e020d81ad345f19fec38d26cefc.png"></div>
+                <div class="col-symbol"><img src="ab67616d00001e020d81ad345f19fec38d26cefc.png" alt="DMK"></div>
                 <div class="col-name dmk-flag">DMK</div>
-                <div class="col-btn"><button class="vote-btn" onclick="submitVote('DMK')"></button></div>
+                <div class="col-btn"><button class="vote-btn" data-party="DMK"></button></div>
             </div>
             <div class="party-row">
-                <div class="col-symbol"><img src="CONGRESS.png"></div>
+                <div class="col-symbol"><img src="CONGRESS.png" alt="CONGRESS"></div>
                 <div class="col-name inc-flag" style="color:black; text-shadow:none;">CONGRESS</div>
-                <div class="col-btn"><button class="vote-btn" onclick="submitVote('CONGRESS')"></button></div>
+                <div class="col-btn"><button class="vote-btn" data-party="CONGRESS"></button></div>
             </div>
         </div>
+        <div class="credit-footer">Created by Dharanivel</div>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getFirestore, collection, addDoc, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-[01/06/2026 12:02 PM] K.Dharshini K.Dharshini: const firebaseConfig = {
+
+        const firebaseConfig = {
             apiKey: "AIzaSyBfl8J102JW32RX7Yrl5qbuDJFRLx09bWg",
             authDomain: "evm-2026.firebaseapp.com",
             projectId: "evm-2026",
@@ -212,47 +226,79 @@
 
         let voterInfo = {};
 
-        window.verifyVoter = async () => {
+        // Helper function to screen basic fake/invalid phone number strings
+        function isValidPhoneNumber(phone) {
+            if (phone.length !== 10) return false;
+            
+            // Rejects continuous identical digits like 0000000000, 9999999999
+            if (/^(\d)\1{9}$/.test(phone)) return false;
+
+            // Rejects common sequential mock numbers like 1234567890
+            if (phone === "1234567890") return false;
+
+            // Ensures the phone number starts with realistic Indian mobile sequences (6, 7, 8, 9)
+            if (!/^[6-9]\d{9}$/.test(phone)) return false;
+
+            return true;
+        }
+
+        // Setup Event Listeners natively in the Module
+        document.getElementById('loginBtn').addEventListener('click', async () => {
             const name = document.getElementById('vName').value.trim();
             const phone = document.getElementById('vPhone').value.trim();
 
-            if(name === "" || phone.length !== 10) {
-                Swal.fire('Error', 'Invalid Name or Phone', 'error');
+            if (name === "") {
+                Swal.fire('Error', 'Please enter your Full Name', 'error');
                 return;
             }
 
-            const q = query(collection(db, "votes"), where("phone", "==", phone));
-            const snap = await getDocs(q);
-            if(!snap.empty) {
-                Swal.fire('Warning', 'Already Voted', 'warning');
+            if (!isValidPhoneNumber(phone)) {
+                Swal.fire('Error', 'PLEASE ENTER ORIGINAL NUMBER', 'error');
                 return;
             }
 
-            voterInfo = { name, phone };
-            document.getElementById('page1').classList.add('hidden');
-            document.getElementById('page2').classList.remove('hidden');
-        };
-
-        window.submitVote = async (party) => {
             try {
-                await addDoc(collection(db, "votes"), {
-                    voter: voterInfo.name,
-                    phone: voterInfo.phone,
-                    party: party,
-                    timestamp: new Date()
-                });
+                const q = query(collection(db, "votes"), where("phone", "==", phone));
+                const snap = await getDocs(q);
+                if (!snap.empty) {
+                    Swal.fire('Warning', 'Already Voted', 'warning');
+                    return;
+                }
 
-                Swal.fire({
-                    title: 'VOTED ✓',
-                    text: party,
-                    icon: 'success',
-                    timer: 2000,
-                    showConfirmButton: false
-                }).then(() => location.reload());
-            } catch (e) {
-                console.error(e);
+                voterInfo = { name, phone };
+                document.getElementById('page1').classList.add('hidden');
+                document.getElementById('page2').classList.remove('hidden');
+            } catch (err) {
+                console.error("Database connection error: ", err);
+                Swal.fire('Error', 'Database connectivity error. Try again.', 'error');
             }
-        };
+        });
+
+        // Event listener mapping for Ballot selections
+        document.querySelectorAll('.vote-btn').forEach(button => {
+            button.addEventListener('click', async (e) => {
+                const party = e.target.getAttribute('data-party');
+                try {
+                    await addDoc(collection(db, "votes"), {
+                        voter: voterInfo.name,
+                        phone: voterInfo.phone,
+                        party: party,
+                        timestamp: new Date()
+                    });
+
+                    Swal.fire({
+                        title: 'VOTED ✓',
+                        text: party,
+                        icon: 'success',
+                        timer: 2000,
+                        showConfirmButton: false
+                    }).then(() => location.reload());
+                } catch (e) {
+                    console.error(e);
+                    Swal.fire('Error', 'Vote submission failed', 'error');
+                }
+            });
+        });
     </script>
 </body>
 </html>
