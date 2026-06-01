@@ -3,60 +3,194 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EVM 2026 - Student Learning Project</title>
+    <title>EVM 2026 - Responsive System</title>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
-        body { font-family: 'Arial', sans-serif; background: #2f3640; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
-        .container { background: #dcdde1; padding: 25px; border-radius: 10px; box-shadow: 0 15px 35px rgba(0,0,0,0.5); width: 95%; max-width: 900px; text-align: center; border: 4px solid #000; }
+        /* Base Styling */
+        body { 
+            font-family: 'Segoe UI', Arial, sans-serif; 
+            background: #2c3e50; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            min-height: 100vh; 
+            margin: 0; 
+            padding: 10px;
+        }
+
+        .container { 
+            background: #dcdde1; 
+            padding: 20px; 
+            border-radius: 12px; 
+            box-shadow: 0 15px 35px rgba(0,0,0,0.5); 
+            width: 100%; 
+            max-width: 850px; /* PC Width */
+            text-align: center; 
+            border: 4px solid #000;
+        }
+
         .hidden { display: none; }
-        
-        /* Registration Page */
-        input { width: 80%; padding: 15px; margin: 10px 0; border: 2px solid #7f8c8d; border-radius: 5px; font-size: 18px; text-align: center; }
-        .start-btn { padding: 15px 40px; background: #27ae60; color: white; border: none; border-radius: 5px; font-size: 20px; cursor: pointer; font-weight: bold; }
 
-        /* EVM Layout */
-        .ballot-box { margin-top: 20px; border: 2px solid #000; background: #95a5a6; padding: 10px; }
-        .party-row { background: white; height: 100px; border: 3px solid black; display: flex; align-items: center; margin-bottom: 8px; border-radius: 4px; overflow: hidden; }
-        
-        .col-symbol { width: 110px; height: 100%; border-right: 3px solid black; background: white; display: flex; align-items: center; justify-content: center; }
-        .col-symbol img { width: 85%; height: 85%; object-fit: contain; }
-        
-        .col-name { flex-grow: 1; height: 100%; border-right: 3px solid black; display: flex; align-items: center; padding-left: 25px; font-size: 28px; font-weight: 900; color: white; text-shadow: 2px 2px 5px #000; }
-        
-        .col-btn { width: 130px; height: 100%; display: flex; align-items: center; justify-content: center; background: #bdc3c7; }
+        /* Page 1 Styling */
+        .reg-card { background: white; padding: 30px; border-radius: 8px; border: 2px solid #000; }
+        input { 
+            width: 90%; 
+            max-width: 400px;
+            padding: 15px; 
+            margin: 10px 0; 
+            border: 2px solid #7f8c8d; 
+            border-radius: 6px; 
+            font-size: 18px; 
+            text-align: center; 
+        }
+        .start-btn { 
+            padding: 15px 50px; 
+            background: #27ae60; 
+            color: white; 
+            border: none; 
+            border-radius: 6px; 
+            font-size: 20px; 
+            cursor: pointer; 
+            font-weight: bold; 
+            transition: 0.3s;
+        }
 
-        /* Vote Button & Click Effect */
-        .vote-btn { width: 80px; height: 50px; background: #0984e3; border-radius: 6px; border: 3px solid #000; cursor: pointer; box-shadow: 0 5px #0652dd; }
-        .vote-btn:active { background: #ff4757 !important; box-shadow: 0 0px #0652dd; transform: translateY(5px); }
+        /* Page 2 (EVM) Styling */
+        .ballot-box { 
+            margin-top: 20px; 
+            border: 3px solid #000; 
+            background: #7f8c8d; 
+            padding: 8px; 
+            border-radius: 4px;
+        }
 
-        /* Flags */
-        .tvk-flag { background: linear-gradient(to bottom, #800000 33%, #FFD700 33%, #FFD700 66%, #800000 66%); }
+        .party-row { 
+            background: white; 
+            height: 90px; 
+            border: 2px solid black; 
+            display: flex; 
+            align-items: center; 
+            margin-bottom: 8px; 
+            border-radius: 4px; 
+            overflow: hidden; 
+        }
+
+        .col-symbol { 
+            width: 80px; 
+            height: 100%; 
+            border-right: 2px solid black; 
+            background: white; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            flex-shrink: 0;
+        }
+        .col-symbol img { width: 80%; max-height: 80%; object-fit: contain; }
+
+        .col-name { 
+            flex-grow: 1; 
+            height: 100%; 
+            border-right: 2px solid black; 
+            display: flex; 
+            align-items: center; 
+            padding-left: 15px; 
+            font-size: 22px; 
+            font-weight: 900; 
+            color: white; 
+            text-shadow: 2px 2px 4px #000; 
+        }
+
+        .col-btn { 
+            width: 100px; 
+            height: 100%; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            background: #bdc3c7; 
+            flex-shrink: 0;
+        }
+
+        /* Original Button & Click Effect */
+        .vote-btn { 
+            width: 65px; 
+            height: 45px; 
+            background: #0984e3; 
+            border-radius: 6px; 
+            border: 2px solid #000; 
+            cursor: pointer; 
+            box-shadow: 0 4px #0652dd; 
+        }
+        .vote-btn:active { 
+            background: #ff4757 !important; 
+            box-shadow: 0 0px #0652dd; 
+            transform: translateY(4px); 
+        }
+
+        /* Party Flag Gradients */
+        .tvk-flag { background: linear-gradient(to bottom, #800000 33.3%, #FFD700 33.3%, #FFD700 66.6%, #800000 66.6%); }
         .bjp-flag { background: linear-gradient(to bottom, #F47216 50%, #00A650 50%); }
-        .ntk-flag { background: radial-gradient(circle, #FFFF00 20%, #008000 100%); }
-        .aiadmk-flag { background: linear-gradient(to bottom, #ffffff 33%, #000000 33%, #000000 66%, #ff0000 66%); }
+        .ntk-flag { background: radial-gradient(circle, #FFFF00 10%, #008000 100%); }
+        .aiadmk-flag { background: linear-gradient(to bottom, #ffffff 33.3%, #000000 33.3%, #000000 66.6%, #ff0000 66.6%); }
         .dmk-flag { background: linear-gradient(to bottom, #000000 50%, #ff0000 50%); }
-        .inc-flag { background: linear-gradient(to bottom, #FF9933 33%, #ffffff 33%, #ffffff 66%, #128807 66%); }
+        .inc-flag { background: linear-gradient(to bottom, #FF9933 33.3%, #ffffff 33.3%, #ffffff 66.6%, #128807 66.6%); }
+
+        /* Responsive Adjustments for Mobile */
+        @media (max-width: 600px) {
+            .container { padding: 10px; }
+            .col-name { font-size: 16px; padding-left: 10px; }
+            .col-symbol { width: 60px; }
+            .col-btn { width: 80px; }
+            .vote-btn { width: 55px; height: 40px; }
+            .party-row { height: 80px; }
+            h1 { font-size: 24px; }
+        }
     </style>
 </head>
 <body>
 
     <div id="page1" class="container">
-        <h1>VOTER VERIFICATION</h1>
-        <input type="text" id="voterName" placeholder="Enter Name">
-        <input type="tel" id="voterPhone" placeholder="10 Digit Phone Number" maxlength="10" oninput="this.value=this.value.replace(/[^0-9]/g,'')">
-        <br><br>
-        <button class="start-btn" onclick="verifyVoter()">PROCEED</button>
+        <div class="reg-card">
+            <h1>EVM VERIFICATION</h1>
+            <input type="text" id="vName" placeholder="Enter Full Name">
+            <input type="tel" id="vPhone" placeholder="10 Digit Mobile No" maxlength="10" oninput="this.value=this.value.replace(/[^0-9]/g,'')">
+            <br><br>
+            <button class="start-btn" onclick="verifyVoter()">LOGIN TO VOTE</button>
+        </div>
     </div>
 
     <div id="page2" class="container hidden">
-        <h2>BALLOT UNIT</h2>
+        <h2 style="margin: 5px 0;">BALLOT UNIT</h2>
         <div class="ballot-box">
-            <div class="party-row"><div class="col-symbol"><img src="TVK.png.png"></div><div class="col-name tvk-flag">TVK</div><div class="col-btn"><button class="vote-btn" onclick="submitVote('TVK')"></button></div></div>
-            <div class="party-row"><div class="col-symbol"><img src="BJP.png"></div><div class="col-name bjp-flag">BJP</div><div class="col-btn"><button class="vote-btn" onclick="submitVote('BJP')"></button></div></div>
-            <div class="party-row"><div class="col-symbol"><img src="NTK.png"></div><div class="col-name ntk-flag">NTK</div><div class="col-btn"><button class="vote-btn" onclick="submitVote('NTK')"></button></div></div>
-            <div class="party-row"><div class="col-symbol"><img src="download.png"></div><div class="col-name aiadmk-flag">AIADMK</div><div class="col-btn"><button class="vote-btn" onclick="submitVote('AIADMK')"></button></div></div>
-            <div class="party-row"><div class="col-symbol"><img src="ab67616d00001e020d81ad345f19fec38d26cefc.png"></div><div class="col-name dmk-flag">DMK</div><div class="col-btn"><button class="vote-btn" onclick="submitVote('DMK')"></button></div></div>
-            <div class="party-row"><div class="col-symbol"><img src="CONGRESS.png"></div><div class="col-name inc-flag" style="color:black; text-shadow:none;">CONGRESS</div><div class="col-btn"><button class="vote-btn" onclick="submitVote('CONGRESS')"></button></div></div>
+            <div class="party-row">
+                <div class="col-symbol"><img src="TVK.png"></div>
+                <div class="col-name tvk-flag">TVK</div>
+                <div class="col-btn"><button class="vote-btn" onclick="submitVote('TVK')"></button></div>
+            </div>
+            <div class="party-row">
+                <div class="col-symbol"><img src="BJP.png"></div>
+                <div class="col-name bjp-flag">BJP</div>
+                <div class="col-btn"><button class="vote-btn" onclick="submitVote('BJP')"></button></div>
+            </div>
+            <div class="party-row">
+                <div class="col-symbol"><img src="NTK.png"></div>
+                <div class="col-name ntk-flag">NTK</div>
+                <div class="col-btn"><button class="vote-btn" onclick="submitVote('NTK')"></button></div>
+            </div>
+            <div class="party-row">
+                <div class="col-symbol"><img src="download.png"></div>
+                <div class="col-name aiadmk-flag">AIADMK</div>
+                <div class="col-btn"><button class="vote-btn" onclick="submitVote('AIADMK')"></button></div>
+            </div>
+            <div class="party-row">
+                <div class="col-symbol"><img src="ab67616d00001e020d81ad345f19fec38d26cefc.png"></div>
+                <div class="col-name dmk-flag">DMK</div>
+                <div class="col-btn"><button class="vote-btn" onclick="submitVote('DMK')"></button></div>
+            </div>
+            <div class="party-row">
+                <div class="col-symbol"><img src="CONGRESS.png"></div>
+                <div class="col-name inc-flag" style="color:black; text-shadow:none;">CONGRESS</div>
+                <div class="col-btn"><button class="vote-btn" onclick="submitVote('CONGRESS')"></button></div>
+            </div>
         </div>
     </div>
 
@@ -76,48 +210,49 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        let currentVoter = {};
+        let voterInfo = {};
 
         window.verifyVoter = async () => {
-            const name = document.getElementById('voterName').value;
-            const phone = document.getElementById('voterPhone').value;
+            const name = document.getElementById('vName').value.trim();
+            const phone = document.getElementById('vPhone').value.trim();
 
-            if(name.length < 2 || phone.length !== 10) {
-                alert("Enter valid details");
+            if(name === "" || phone.length !== 10) {
+                Swal.fire('Input Error', 'Please enter your name and 10-digit phone number.', 'error');
                 return;
             }
 
-            // Check if phone number already voted
+            // Check Firebase for existing vote
             const q = query(collection(db, "votes"), where("phone", "==", phone));
             const snap = await getDocs(q);
             if(!snap.empty) {
-                Swal.fire('Already Voted', 'This number has already been used.', 'error');
+                Swal.fire('Access Denied', 'This number has already cast a vote.', 'warning');
                 return;
             }
 
-            currentVoter = { name, phone };
+            voterInfo = { name, phone };
             document.getElementById('page1').classList.add('hidden');
             document.getElementById('page2').classList.remove('hidden');
         };
 
         window.submitVote = async (party) => {
             try {
-                // Save Name, Phone, and Party to Firebase
+                // Save to Firebase
                 await addDoc(collection(db, "votes"), {
-                    voterName: currentVoter.name,
-                    phone: currentVoter.phone,
-                    votedParty: party,
-                    time: new Date()
+                    voter: voterInfo.name,
+                    phone: voterInfo.phone,
+                    party: party,
+                    timestamp: new Date()
                 });
 
                 Swal.fire({
                     title: 'SUCCESSFULLY VOTED ✓',
+                    text: `Your vote for ${party} is recorded.`,
                     icon: 'success',
                     timer: 2000,
                     showConfirmButton: false
                 }).then(() => location.reload());
             } catch (e) {
-                alert("Error: " + e.message);
+                alert("Database Error: " + e.message);
             }
         };
     </script>
