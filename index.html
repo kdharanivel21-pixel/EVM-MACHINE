@@ -4,26 +4,51 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>EVM 2026 Voting System</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://www.gstatic.com/firebasejs/10.x.x/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.x.x/firebase-firestore-compat.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 <body>
 
-    <div id="page1">
-        <h2>Voter Verification</h2>
-        <input type="text" id="vName" placeholder="Enter Name">
-        <input type="text" id="vPhone" placeholder="Enter 10-digit Phone">
-        <button onclick="verifyVoter()">Verify & Proceed</button>
-    </div>
+    <div class="app-container">
+        <div id="page1" class="card">
+            <div class="card-header">
+                <h2>Voter Verification</h2>
+                <p>Please enter your credentials to access the electronic voting terminal.</p>
+            </div>
+            
+            <div class="form-group">
+                <label for="vName">Full Name</label>
+                <input type="text" id="vName" placeholder="e.g. John Doe">
+            </div>
+            
+            <div class="form-group">
+                <label for="vPhone">Phone Number</label>
+                <input type="text" id="vPhone" placeholder="Enter 10-digit mobile number" maxlength="10">
+            </div>
+            
+            <button class="btn btn-primary" onclick="verifyVoter()">Verify & Proceed</button>
+        </div>
 
-    <div id="page2" class="hidden">
-        <h2>Select Your Party</h2>
-        <button onclick="submitVote('Party A')">Party A</button>
-        <button onclick="submitVote('Party B')">Party B</button>
-        
-        <div style="margin-top: 50px; font-size: 0.8em; color: #888; text-align: center;">
-            <p>Created by: Dharanivel</p>
+        <div id="page2" class="card hidden">
+            <div class="card-header">
+                <h2>Select Your Party</h2>
+                <p>Cast your vote securely. Your choice is encrypted and anonymous.</p>
+            </div>
+            
+            <div class="party-list">
+                <button class="btn btn-party party-a" onclick="submitVote('Party A')">
+                    <span class="party-icon">🅰️</span> Party A
+                </button>
+                <button class="btn btn-party party-b" onclick="submitVote('Party B')">
+                    <span class="party-icon">🅱️</span> Party B
+                </button>
+            </div>
+            
+            <div class="footer-info">
+                <p>Created by: Dharanivel</p>
+            </div>
         </div>
     </div>
 
@@ -53,17 +78,13 @@
             }
 
             // --- FAKE NUMBER DETECTION START ---
-            // 1. Block identical repeating digits (e.g., 0000000000, 9999999999)
             const isRepeating = /^(\d)\1{9}$/.test(phone);
-
-            // 2. Block common continuous sequential fake lists
             const fakePatterns = [
                 "1234567890", "0123456789", "2345678901",
                 "9876543210", "0987654321", "8765432109"
             ];
             const isSequential = fakePatterns.includes(phone);
 
-            // If it matches a fake rule, show the requested alert text
             if (isRepeating || isSequential) {
                 Swal.fire('Error', 'Enter your Original phone number', 'error');
                 return;
@@ -107,8 +128,150 @@
     </script>
 
     <style>
-        .hidden { display: none; }
-        body { font-family: sans-serif; padding: 20px; }
+        /* Base Reset & Styling */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .app-container {
+            width: 100%;
+            max-width: 450px;
+        }
+
+        /* Card Container layout */
+        .card {
+            background: #ffffff;
+            border-radius: 16px;
+            padding: 40px 30px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease;
+        }
+
+        .card-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .card-header h2 {
+            color: #1e293b;
+            font-size: 1.6rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .card-header p {
+            color: #64748b;
+            font-size: 0.9rem;
+            line-height: 1.4;
+        }
+
+        /* Form Inputs style */
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #475569;
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 14px 16px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 1rem;
+            color: #1e293b;
+            outline: none;
+            transition: border-color 0.2s ease;
+        }
+
+        .form-group input:focus {
+            border-color: #3b82f6;
+        }
+
+        /* Utility Buttons design */
+        .btn {
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-primary {
+            background: #3b82f6;
+            color: #ffffff;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.25);
+        }
+
+        .btn-primary:hover {
+            background: #2563eb;
+            transform: translateY(-1px);
+        }
+
+        /* Page 2: Ballot Button layout */
+        .party-list {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .btn-party {
+            background: #f8fafc;
+            border: 2px solid #e2e8f0;
+            color: #334155;
+            text-align: left;
+            display: flex;
+            align-items: center;
+            padding: 18px;
+        }
+
+        .party-icon {
+            margin-right: 15px;
+            font-size: 1.25rem;
+        }
+
+        .btn-party:hover {
+            background: #ffffff;
+            border-color: #3b82f6;
+            transform: scale(1.02);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+        }
+
+        /* Footer configuration */
+        .footer-info {
+            margin-top: 40px;
+            font-size: 0.8rem;
+            color: #94a3b8;
+            text-align: center;
+            border-top: 1px solid #f1f5f9;
+            padding-top: 20px;
+        }
+
+        .hidden {
+            display: none !important;
+        }
     </style>
 </body>
 </html>
