@@ -88,6 +88,8 @@
             align-items: center; 
             justify-content: center; 
             flex-shrink: 0;
+            font-weight: bold;
+            font-size: 24px;
         }
         .col-symbol img { width: 85%; height: auto; max-height: 60px; object-fit: contain; }
 
@@ -145,6 +147,7 @@
         .aiadmk-flag { background: linear-gradient(to bottom, #ffffff 33.3%, #000000 33.3%, #000000 66.6%, #ff0000 66.6%); }
         .dmk-flag { background: linear-gradient(to bottom, #000000 50%, #ff0000 50%); }
         .inc-flag { background: linear-gradient(to bottom, #FF9933 33.3%, #ffffff 33.3%, #ffffff 66.6%, #128807 66.6%); }
+        .other-flag { background: linear-gradient(to right, #8e44ad, #3498db); }
 
         /* Tablet/Mobile Fixes */
         @media (max-width: 600px) {
@@ -167,7 +170,6 @@
             <input type="text" id="vName" placeholder="Enter Full Name">
             <input type="tel" id="vPhone" placeholder="10 Digit Mobile No" maxlength="10" oninput="this.value = this.value.replace(/[^0-9]/g, '');">
             <br>
-            <!-- Hidden reCAPTCHA container required by Firebase -->
             <div id="recaptcha-container"></div>
             <button class="start-btn" id="loginBtn">LOGIN TO VOTE</button>
         </div>
@@ -206,6 +208,13 @@
                 <div class="col-name inc-flag" style="color:black; text-shadow:none;">CONGRESS</div>
                 <div class="col-btn"><button class="vote-btn" data-party="CONGRESS"></button></div>
             </div>
+
+            <!-- Added Extra Box: OTHER -->
+            <div class="party-row">
+                <div class="col-symbol">★</div>
+                <div class="col-name other-flag">OTHER</div>
+                <div class="col-btn"><button class="vote-btn" data-party="OTHER"></button></div>
+            </div>
         </div>
         <div class="credit-footer">Created by Dharanivel</div>
     </div>
@@ -231,7 +240,6 @@
         let voterInfo = {};
         let confirmationResultObj = null;
 
-        // Initialize invisible reCAPTCHA verifier for Firebase
         function initRecaptcha() {
             if (!window.recaptchaVerifier) {
                 window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
@@ -255,7 +263,6 @@
             }
 
             try {
-                // 1. Check duplicate votes in Firestore database
                 const q = query(collection(db, "votes"), where("phone", "==", phone));
                 const snap = await getDocs(q);
                 if (!snap.empty) {
@@ -269,18 +276,15 @@
                     didOpen: () => Swal.showLoading()
                 });
 
-                // 2. Format to International E.164 (+91 for Indian numbers)
                 const formattedPhone = "+91" + phone;
                 initRecaptcha();
 
-                // 3. Trigger Firebase Authentication
                 confirmationResultObj = await signInWithPhoneNumber(auth, formattedPhone, window.recaptchaVerifier);
 
-                // 4. Prompt user to enter the OTP (Works with Test OTPs instantly)
                 const { value: otp } = await Swal.fire({
                     title: 'Enter Verification Code',
                     input: 'text',
-                    inputLabel: `OTP sent/configured for ${formattedPhone}`,
+                    inputLabel: `OTP sent to ${formattedPhone}`,
                     inputPlaceholder: 'Enter 6-digit OTP',
                     showCancelButton: true,
                     inputValidator: (val) => {
@@ -297,7 +301,6 @@
                         didOpen: () => Swal.showLoading()
                     });
 
-                    // 5. Verify the code entered by user against Firebase
                     await confirmationResultObj.confirm(otp);
 
                     voterInfo = { name, phone };
@@ -308,38 +311,77 @@
                 }
             } catch (err) {
                 console.error("Auth Error: ", err);
-                
-                // Reset reCAPTCHA on failure to allow re-submission
                 if (window.recaptchaVerifier) {
                     window.recaptchaVerifier.clear();
                     window.recaptchaVerifier = null;
                 }
-
-                Swal.fire('Authentication Error', err.message || 'OTP verification failed. Make sure phone number is added in Firebase Test List.', 'error');
+                Swal.fire('Authentication Error', err.message || 'OTP verification failed.', 'error');
             }
         });
 
-        // Vote submission handler
+        // Voting system for all buttons including "OTHER"
         document.querySelectorAll('.vote-btn').forEach(button => {
             button.addEventListener('click', async (e) => {
                 const party = e.target.getAttribute('data-party');
+
+                let otherDetails = null;
+
+                if (party === "OTHER") {
+                    // Modal pop-up requiring Name, Phone, and Password "Vel"
+                    const { value: formValues } = await Swal.fire({
+                        title: 'Enter Other Candidate Details',
+                        html:
+                            '<input id="swal-other-name" class="swal2-input" placeholder="Enter Candidate Name">' +
+                            '<input id="swal-other-phone" class="swal2-input" placeholder="Enter Phone Number" maxlength="10">' +
+                            '<input id="swal-other-pass" type="password" class="swal2-input" placeholder="Enter Password">',
+                        focusConfirm: false,
+                        showCancelButton: true,
+                        preConfirm: () => {
+                            const otherName = document.getElementById('swal-other-name').value.trim();
+                            const otherPhone = document.getElementById('swal-other-phone').value.trim();
+                            const otherPass = document.getElementById('swal-other-pass').value.trim();
+
+                            if (!otherName || !otherPhone || !otherPass) {
+                                Swal.showValidationMessage('Please fill out all fields');
+                                return false;
+                            }
+                            if (otherPass !== "Vel") {
+                                Swal.showValidationMessage('Incorrect Password! (Required: Vel)');
+                                return false;
+                            }
+                            return { otherName, otherPhone };
+                        }
+                    });
+
+                    if (!formValues) return; // User cancelled
+                    otherDetails = formValues;
+                }
+
                 try {
-                    await addDoc(collection(db, "votes"), {
+                    const voteData = {
                         voter: voterInfo.name,
                         phone: voterInfo.phone,
                         party: party,
                         timestamp: new Date()
-                    });
+                    };
+
+                    // Add extra fields to database record if "OTHER" was chosen
+                    if (otherDetails) {
+                        voteData.otherCandidateName = otherDetails.otherName;
+                        voteData.otherCandidatePhone = otherDetails.otherPhone;
+                    }
+
+                    await addDoc(collection(db, "votes"), voteData);
 
                     Swal.fire({
                         title: 'VOTED ✓',
-                        text: party,
+                        text: party === "OTHER" ? `OTHER (${otherDetails.otherName})` : party,
                         icon: 'success',
                         timer: 2000,
                         showConfirmButton: false
                     }).then(() => location.reload());
-                } catch (e) {
-                    console.error(e);
+                } catch (err) {
+                    console.error(err);
                     Swal.fire('Error', 'Vote submission failed', 'error');
                 }
             });
