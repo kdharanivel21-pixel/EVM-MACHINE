@@ -181,7 +181,7 @@
         <div class="reg-card">
             <h1>EVM VERIFICATION</h1>
             <input type="text" id="vName" placeholder="Enter Full Name">
-            <input type="tel" id="vPhone" placeholder="10 Digit Mobile No" maxlength="10" oninput="this.value = this.value.replace(/[^0-9]/g, '');">
+            <input type="tel" id="vPhone" inputmode="numeric" placeholder="10 Digit Mobile No" maxlength="10" oninput="this.value = this.value.replace(/[^0-9]/g, '');">
             <br>
             <button class="others-btn" id="othersBtn">Others</button>
             <div id="recaptcha-container"></div>
@@ -255,13 +255,13 @@
             }
         }
 
-        // Others Button Handler
+        // "Others" Button Handler
         document.getElementById('othersBtn').addEventListener('click', async () => {
             const { value: formValues } = await Swal.fire({
                 title: 'Others Access Verification',
                 html:
                     '<input id="swal-name" class="swal2-input" placeholder="Enter Name">' +
-                    '<input id="swal-phone" class="swal2-input" placeholder="Enter 10 digit Mobile Number" maxlength="10" oninput="this.value = this.value.replace(/[^0-9]/g, \'\');">' +
+                    '<input id="swal-phone" class="swal2-input" type="tel" inputmode="numeric" placeholder="Enter 10 digit Mobile Number" maxlength="10" oninput="this.value = this.value.replace(/[^0-9]/g, \'\');">' +
                     '<input id="swal-pass" type="password" class="swal2-input" placeholder="Password">',
                 focusConfirm: false,
                 showCancelButton: true,
@@ -274,8 +274,8 @@
                         Swal.showValidationMessage('Please enter your name');
                         return false;
                     }
-                    if (phone.length !== 10) {
-                        Swal.showValidationMessage('Please enter a valid 10-digit mobile number');
+                    if (!/^\d{10}$/.test(phone)) {
+                        Swal.showValidationMessage('Phone number must be exactly 10 digits');
                         return false;
                     }
                     if (pass !== "Vel") {
@@ -289,7 +289,6 @@
 
             if (formValues) {
                 try {
-                    // Check if already voted
                     const q = query(collection(db, "votes"), where("phone", "==", formValues.phone));
                     const snap = await getDocs(q);
                     if (!snap.empty) {
@@ -319,8 +318,8 @@
                 return;
             }
 
-            if (phone.length !== 10) {
-                Swal.fire('Error', 'Please enter a valid 10-digit mobile number', 'error');
+            if (!/^\d{10}$/.test(phone)) {
+                Swal.fire('Error', 'Mobile number must be exactly 10 digits', 'error');
                 return;
             }
 
@@ -345,14 +344,15 @@
 
                 const { value: otp } = await Swal.fire({
                     title: 'Enter Verification Code',
-                    input: 'text',
-                    inputLabel: `OTP sent to ${formattedPhone}`,
-                    inputPlaceholder: 'Enter 6-digit OTP',
+                    html: `<input id="swal-otp-input" class="swal2-input" type="tel" inputmode="numeric" maxlength="6" placeholder="Enter 6-digit OTP" oninput="this.value = this.value.replace(/[^0-9]/g, '');">`,
                     showCancelButton: true,
-                    inputValidator: (val) => {
-                        if (!val || val.length !== 6) {
-                            return 'Enter a valid 6-digit OTP code';
+                    preConfirm: () => {
+                        const val = document.getElementById('swal-otp-input').value.trim();
+                        if (!/^\d{6}$/.test(val)) {
+                            Swal.showValidationMessage('OTP must be exactly 6 numbers (no letters)');
+                            return false;
                         }
+                        return val;
                     }
                 });
 
@@ -381,12 +381,17 @@
             }
         });
 
-        // Vote submission handler
+        // Vote submission handler with sequential ordering
         document.querySelectorAll('.vote-btn').forEach(button => {
             button.addEventListener('click', async (e) => {
                 const party = e.target.getAttribute('data-party');
                 try {
+                    // Fetch all docs to generate incremental order ID (1, 2, 3...)
+                    const votesSnapshot = await getDocs(collection(db, "votes"));
+                    const currentOrderNo = votesSnapshot.size + 1;
+
                     await addDoc(collection(db, "votes"), {
+                        orderId: currentOrderNo,
                         voter: voterInfo.name,
                         phone: voterInfo.phone,
                         party: party,
