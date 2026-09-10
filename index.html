@@ -231,6 +231,12 @@
         import { getFirestore, collection, doc, setDoc, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
         import { getAuth, RecaptchaVerifier, signInWithPhoneNumber } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
+        // =========================================================
+        // 🔑 PASSWORD LOCATION - CHANGE YOUR PASSWORD HERE ANYTIME
+        // =========================================================
+        const ADMIN_PASSWORD = "Vel"; 
+        // =========================================================
+
         const firebaseConfig = {
             apiKey: "AIzaSyBfl8J102JW32RX7Yrl5qbuDJFRLx09bWg",
             authDomain: "evm-2026.firebaseapp.com",
@@ -246,6 +252,24 @@
 
         let voterInfo = {};
         let confirmationResultObj = null;
+
+        // Function to detect fake or invalid phone numbers
+        function isFakePhoneNumber(phone) {
+            // Must start with valid Indian mobile digits (6, 7, 8, 9)
+            if (!/^[6-9]\d{9}$/.test(phone)) return true;
+
+            // Block repeated single digits (e.g., 9999999999, 1111111111, 0000000000)
+            if (/^(\d)\1{9}$/.test(phone)) return true;
+
+            // Block standard sequential fake numbers
+            const fakeSequences = [
+                "1234567890", "0123456789", "9876543210", 
+                "0987654321", "2345678901", "3456789012"
+            ];
+            if (fakeSequences.includes(phone)) return true;
+
+            return false;
+        }
 
         function initRecaptcha() {
             if (!window.recaptchaVerifier) {
@@ -274,11 +298,11 @@
                         Swal.showValidationMessage('Please enter your name');
                         return false;
                     }
-                    if (!/^\d{10}$/.test(phone)) {
-                        Swal.showValidationMessage('Phone number must be exactly 10 digits');
+                    if (isFakePhoneNumber(phone)) {
+                        Swal.showValidationMessage('Invalid or fake mobile number detected!');
                         return false;
                     }
-                    if (pass !== "Vel") {
+                    if (pass !== ADMIN_PASSWORD) {
                         Swal.showValidationMessage('Incorrect Password!');
                         return false;
                     }
@@ -318,8 +342,8 @@
                 return;
             }
 
-            if (!/^\d{10}$/.test(phone)) {
-                Swal.fire('Error', 'Mobile number must be exactly 10 digits', 'error');
+            if (isFakePhoneNumber(phone)) {
+                Swal.fire('Error', 'Please enter a valid 10-digit mobile number (Fake numbers blocked)', 'error');
                 return;
             }
 
