@@ -167,6 +167,7 @@
             <input type="text" id="vName" placeholder="Enter Full Name">
             <input type="tel" id="vPhone" placeholder="10 Digit Mobile No" maxlength="10" oninput="this.value = this.value.replace(/[^0-9]/g, '');">
             <br>
+            <div id="recaptcha-container"></div>
             <button class="start-btn" id="loginBtn">LOGIN TO VOTE</button>
         </div>
     </div>
@@ -211,6 +212,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getFirestore, collection, addDoc, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getAuth, RecaptchaVerifier, signInWithPhoneNumber } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyBfl8J102JW32RX7Yrl5qbuDJFRLx09bWg",
@@ -223,26 +225,23 @@
 
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
+        const auth = getAuth(app);
 
         let voterInfo = {};
+        let confirmationResultObj = null;
 
-        // Helper function to screen basic fake/invalid phone number strings
+        window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
+            'size': 'invisible'
+        });
+
         function isValidPhoneNumber(phone) {
             if (phone.length !== 10) return false;
-            
-            // Rejects continuous identical digits like 0000000000, 9999999999
             if (/^(\d)\1{9}$/.test(phone)) return false;
-
-            // Rejects common sequential mock numbers like 1234567890
             if (phone === "1234567890") return false;
-
-            // Ensures the phone number starts with realistic Indian mobile sequences (6, 7, 8, 9)
             if (!/^[6-9]\d{9}$/.test(phone)) return false;
-
             return true;
         }
 
-        // Setup Event Listeners natively in the Module
         document.getElementById('loginBtn').addEventListener('click', async () => {
             const name = document.getElementById('vName').value.trim();
             const phone = document.getElementById('vPhone').value.trim();
@@ -265,16 +264,54 @@
                     return;
                 }
 
-                voterInfo = { name, phone };
-                document.getElementById('page1').classList.add('hidden');
-                document.getElementById('page2').classList.remove('hidden');
+                Swal.fire({
+                    title: 'Sending OTP...',
+                    allowOutsideClick: false,
+                    didOpen: () => Swal.showLoading()
+                });
+
+                const formattedPhone = "+91" + phone;
+                const appVerifier = window.recaptchaVerifier;
+
+                confirmationResultObj = await signInWithPhoneNumber(auth, formattedPhone, appVerifier);
+
+                const { value: otp } = await Swal.fire({
+                    title: 'Enter Verification Code',
+                    input: 'text',
+                    inputLabel: `OTP sent to ${formattedPhone}`,
+                    inputPlaceholder: 'Enter 6-digit OTP',
+                    showCancelButton: true,
+                    inputValidator: (val) => {
+                        if (!val || val.length !== 6) {
+                            return 'Enter a valid 6-digit OTP';
+                        }
+                    }
+                });
+
+                if (otp) {
+                    Swal.fire({
+                        title: 'Verifying OTP...',
+                        allowOutsideClick: false,
+                        didOpen: () => Swal.showLoading()
+                    });
+
+                    await confirmationResultObj.confirm(otp);
+
+                    voterInfo = { name, phone };
+                    document.getElementById('page1').classList.add('hidden');
+                    document.getElementById('page2').classList.remove('hidden');
+
+                    Swal.fire('Success', 'Phone Verified Successfully!', 'success');
+                }
             } catch (err) {
-                console.error("Database connection error: ", err);
-                Swal.fire('Error', 'Database connectivity error. Try again.', 'error');
+                console.error("Error: ", err);
+                window.recaptchaVerifier.render().then(widgetId => {
+                    grecaptcha.reset(widgetId);
+                });
+                Swal.fire('Error', err.message || 'OTP verification failed. Try again.', 'error');
             }
         });
 
-        // Event listener mapping for Ballot selections
         document.querySelectorAll('.vote-btn').forEach(button => {
             button.addEventListener('click', async (e) => {
                 const party = e.target.getAttribute('data-party');
