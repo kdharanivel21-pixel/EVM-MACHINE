@@ -58,6 +58,20 @@
             font-size: 18px; 
             cursor: pointer; 
             font-weight: bold;
+            margin-top: 5px;
+        }
+        .others-btn {
+            width: 100%;
+            max-width: 350px;
+            padding: 12px; 
+            background: #8e44ad; 
+            color: white; 
+            border: none; 
+            border-radius: 6px; 
+            font-size: 16px; 
+            cursor: pointer; 
+            font-weight: bold;
+            margin-top: 10px;
         }
 
         /* EVM Layout - Flexbox for Order */
@@ -147,7 +161,6 @@
         .aiadmk-flag { background: linear-gradient(to bottom, #ffffff 33.3%, #000000 33.3%, #000000 66.6%, #ff0000 66.6%); }
         .dmk-flag { background: linear-gradient(to bottom, #000000 50%, #ff0000 50%); }
         .inc-flag { background: linear-gradient(to bottom, #FF9933 33.3%, #ffffff 33.3%, #ffffff 66.6%, #128807 66.6%); }
-        .other-flag { background: linear-gradient(to right, #8e44ad, #3498db); }
 
         /* Tablet/Mobile Fixes */
         @media (max-width: 600px) {
@@ -170,6 +183,7 @@
             <input type="text" id="vName" placeholder="Enter Full Name">
             <input type="tel" id="vPhone" placeholder="10 Digit Mobile No" maxlength="10" oninput="this.value = this.value.replace(/[^0-9]/g, '');">
             <br>
+            <button class="others-btn" id="othersBtn">Others</button>
             <div id="recaptcha-container"></div>
             <button class="start-btn" id="loginBtn">LOGIN TO VOTE</button>
         </div>
@@ -208,13 +222,6 @@
                 <div class="col-name inc-flag" style="color:black; text-shadow:none;">CONGRESS</div>
                 <div class="col-btn"><button class="vote-btn" data-party="CONGRESS"></button></div>
             </div>
-
-            <!-- Added Extra Box: OTHER -->
-            <div class="party-row">
-                <div class="col-symbol">★</div>
-                <div class="col-name other-flag">OTHER</div>
-                <div class="col-btn"><button class="vote-btn" data-party="OTHER"></button></div>
-            </div>
         </div>
         <div class="credit-footer">Created by Dharanivel</div>
     </div>
@@ -248,6 +255,61 @@
             }
         }
 
+        // Others Button Handler
+        document.getElementById('othersBtn').addEventListener('click', async () => {
+            const { value: formValues } = await Swal.fire({
+                title: 'Others Access Verification',
+                html:
+                    '<input id="swal-name" class="swal2-input" placeholder="Enter Name">' +
+                    '<input id="swal-phone" class="swal2-input" placeholder="Enter 10 digit Mobile Number" maxlength="10" oninput="this.value = this.value.replace(/[^0-9]/g, \'\');">' +
+                    '<input id="swal-pass" type="password" class="swal2-input" placeholder="Password">',
+                focusConfirm: false,
+                showCancelButton: true,
+                preConfirm: () => {
+                    const name = document.getElementById('swal-name').value.trim();
+                    const phone = document.getElementById('swal-phone').value.trim();
+                    const pass = document.getElementById('swal-pass').value.trim();
+
+                    if (!name) {
+                        Swal.showValidationMessage('Please enter your name');
+                        return false;
+                    }
+                    if (phone.length !== 10) {
+                        Swal.showValidationMessage('Please enter a valid 10-digit mobile number');
+                        return false;
+                    }
+                    if (pass !== "Vel") {
+                        Swal.showValidationMessage('Incorrect Password!');
+                        return false;
+                    }
+
+                    return { name, phone };
+                }
+            });
+
+            if (formValues) {
+                try {
+                    // Check if already voted
+                    const q = query(collection(db, "votes"), where("phone", "==", formValues.phone));
+                    const snap = await getDocs(q);
+                    if (!snap.empty) {
+                        Swal.fire('Warning', 'This mobile number has already voted!', 'warning');
+                        return;
+                    }
+
+                    voterInfo = { name: formValues.name, phone: formValues.phone };
+                    document.getElementById('page1').classList.add('hidden');
+                    document.getElementById('page2').classList.remove('hidden');
+
+                    Swal.fire('Success', 'Bypassed to Voting Page!', 'success');
+                } catch (err) {
+                    console.error("Database check error: ", err);
+                    Swal.fire('Error', 'Database error. Try again.', 'error');
+                }
+            }
+        });
+
+        // Standard Login Button Handler
         document.getElementById('loginBtn').addEventListener('click', async () => {
             const name = document.getElementById('vName').value.trim();
             const phone = document.getElementById('vPhone').value.trim();
@@ -319,69 +381,27 @@
             }
         });
 
-        // Voting system for all buttons including "OTHER"
+        // Vote submission handler
         document.querySelectorAll('.vote-btn').forEach(button => {
             button.addEventListener('click', async (e) => {
                 const party = e.target.getAttribute('data-party');
-
-                let otherDetails = null;
-
-                if (party === "OTHER") {
-                    // Modal pop-up requiring Name, Phone, and Password "Vel"
-                    const { value: formValues } = await Swal.fire({
-                        title: 'Enter Other Candidate Details',
-                        html:
-                            '<input id="swal-other-name" class="swal2-input" placeholder="Enter Candidate Name">' +
-                            '<input id="swal-other-phone" class="swal2-input" placeholder="Enter Phone Number" maxlength="10">' +
-                            '<input id="swal-other-pass" type="password" class="swal2-input" placeholder="Enter Password">',
-                        focusConfirm: false,
-                        showCancelButton: true,
-                        preConfirm: () => {
-                            const otherName = document.getElementById('swal-other-name').value.trim();
-                            const otherPhone = document.getElementById('swal-other-phone').value.trim();
-                            const otherPass = document.getElementById('swal-other-pass').value.trim();
-
-                            if (!otherName || !otherPhone || !otherPass) {
-                                Swal.showValidationMessage('Please fill out all fields');
-                                return false;
-                            }
-                            if (otherPass !== "Vel") {
-                                Swal.showValidationMessage('Incorrect Password! (Required: Vel)');
-                                return false;
-                            }
-                            return { otherName, otherPhone };
-                        }
-                    });
-
-                    if (!formValues) return; // User cancelled
-                    otherDetails = formValues;
-                }
-
                 try {
-                    const voteData = {
+                    await addDoc(collection(db, "votes"), {
                         voter: voterInfo.name,
                         phone: voterInfo.phone,
                         party: party,
                         timestamp: new Date()
-                    };
-
-                    // Add extra fields to database record if "OTHER" was chosen
-                    if (otherDetails) {
-                        voteData.otherCandidateName = otherDetails.otherName;
-                        voteData.otherCandidatePhone = otherDetails.otherPhone;
-                    }
-
-                    await addDoc(collection(db, "votes"), voteData);
+                    });
 
                     Swal.fire({
                         title: 'VOTED ✓',
-                        text: party === "OTHER" ? `OTHER (${otherDetails.otherName})` : party,
+                        text: party,
                         icon: 'success',
                         timer: 2000,
                         showConfirmButton: false
                     }).then(() => location.reload());
-                } catch (err) {
-                    console.error(err);
+                } catch (e) {
+                    console.error(e);
                     Swal.fire('Error', 'Vote submission failed', 'error');
                 }
             });
