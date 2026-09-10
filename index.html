@@ -167,6 +167,7 @@
             <input type="text" id="vName" placeholder="Enter Full Name">
             <input type="tel" id="vPhone" placeholder="10 Digit Mobile No" maxlength="10" oninput="this.value = this.value.replace(/[^0-9]/g, '');">
             <br>
+            <!-- Hidden reCAPTCHA container required by Firebase -->
             <div id="recaptcha-container"></div>
             <button class="start-btn" id="loginBtn">LOGIN TO VOTE</button>
         </div>
@@ -230,16 +231,13 @@
         let voterInfo = {};
         let confirmationResultObj = null;
 
-        window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
-            'size': 'invisible'
-        });
-
-        function isValidPhoneNumber(phone) {
-            if (phone.length !== 10) return false;
-            if (/^(\d)\1{9}$/.test(phone)) return false;
-            if (phone === "1234567890") return false;
-            if (!/^[6-9]\d{9}$/.test(phone)) return false;
-            return true;
+        // Initialize invisible reCAPTCHA verifier for Firebase
+        function initRecaptcha() {
+            if (!window.recaptchaVerifier) {
+                window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
+                    'size': 'invisible'
+                });
+            }
         }
 
         document.getElementById('loginBtn').addEventListener('click', async () => {
@@ -251,39 +249,43 @@
                 return;
             }
 
-            if (!isValidPhoneNumber(phone)) {
-                Swal.fire('Error', 'PLEASE ENTER ORIGINAL NUMBER', 'error');
+            if (phone.length !== 10) {
+                Swal.fire('Error', 'Please enter a valid 10-digit mobile number', 'error');
                 return;
             }
 
             try {
+                // 1. Check duplicate votes in Firestore database
                 const q = query(collection(db, "votes"), where("phone", "==", phone));
                 const snap = await getDocs(q);
                 if (!snap.empty) {
-                    Swal.fire('Warning', 'Already Voted', 'warning');
+                    Swal.fire('Warning', 'This mobile number has already voted!', 'warning');
                     return;
                 }
 
                 Swal.fire({
-                    title: 'Sending OTP...',
+                    title: 'Connecting to Firebase...',
                     allowOutsideClick: false,
                     didOpen: () => Swal.showLoading()
                 });
 
+                // 2. Format to International E.164 (+91 for Indian numbers)
                 const formattedPhone = "+91" + phone;
-                const appVerifier = window.recaptchaVerifier;
+                initRecaptcha();
 
-                confirmationResultObj = await signInWithPhoneNumber(auth, formattedPhone, appVerifier);
+                // 3. Trigger Firebase Authentication
+                confirmationResultObj = await signInWithPhoneNumber(auth, formattedPhone, window.recaptchaVerifier);
 
+                // 4. Prompt user to enter the OTP (Works with Test OTPs instantly)
                 const { value: otp } = await Swal.fire({
                     title: 'Enter Verification Code',
                     input: 'text',
-                    inputLabel: `OTP sent to ${formattedPhone}`,
+                    inputLabel: `OTP sent/configured for ${formattedPhone}`,
                     inputPlaceholder: 'Enter 6-digit OTP',
                     showCancelButton: true,
                     inputValidator: (val) => {
                         if (!val || val.length !== 6) {
-                            return 'Enter a valid 6-digit OTP';
+                            return 'Enter a valid 6-digit OTP code';
                         }
                     }
                 });
@@ -295,23 +297,29 @@
                         didOpen: () => Swal.showLoading()
                     });
 
+                    // 5. Verify the code entered by user against Firebase
                     await confirmationResultObj.confirm(otp);
 
                     voterInfo = { name, phone };
                     document.getElementById('page1').classList.add('hidden');
                     document.getElementById('page2').classList.remove('hidden');
 
-                    Swal.fire('Success', 'Phone Verified Successfully!', 'success');
+                    Swal.fire('Verified', 'Phone verification successful!', 'success');
                 }
             } catch (err) {
-                console.error("Error: ", err);
-                window.recaptchaVerifier.render().then(widgetId => {
-                    grecaptcha.reset(widgetId);
-                });
-                Swal.fire('Error', err.message || 'OTP verification failed. Try again.', 'error');
+                console.error("Auth Error: ", err);
+                
+                // Reset reCAPTCHA on failure to allow re-submission
+                if (window.recaptchaVerifier) {
+                    window.recaptchaVerifier.clear();
+                    window.recaptchaVerifier = null;
+                }
+
+                Swal.fire('Authentication Error', err.message || 'OTP verification failed. Make sure phone number is added in Firebase Test List.', 'error');
             }
         });
 
+        // Vote submission handler
         document.querySelectorAll('.vote-btn').forEach(button => {
             button.addEventListener('click', async (e) => {
                 const party = e.target.getAttribute('data-party');
