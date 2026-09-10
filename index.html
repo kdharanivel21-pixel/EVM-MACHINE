@@ -228,7 +228,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, collection, addDoc, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, collection, doc, setDoc, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
         import { getAuth, RecaptchaVerifier, signInWithPhoneNumber } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
         const firebaseConfig = {
@@ -381,17 +381,18 @@
             }
         });
 
-        // Vote submission handler with sequential ordering
+        // Vote submission handler - Saves document ID as 1, 2, 3...
         document.querySelectorAll('.vote-btn').forEach(button => {
             button.addEventListener('click', async (e) => {
                 const party = e.target.getAttribute('data-party');
                 try {
-                    // Fetch all docs to generate incremental order ID (1, 2, 3...)
+                    // Count total docs to get the next ID number
                     const votesSnapshot = await getDocs(collection(db, "votes"));
-                    const currentOrderNo = votesSnapshot.size + 1;
+                    const nextId = String(votesSnapshot.size + 1);
 
-                    await addDoc(collection(db, "votes"), {
-                        orderId: currentOrderNo,
+                    // Save directly using the sequential number (1, 2, 3...) as the document ID
+                    await setDoc(doc(db, "votes", nextId), {
+                        orderId: Number(nextId),
                         voter: voterInfo.name,
                         phone: voterInfo.phone,
                         party: party,
