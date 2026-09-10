@@ -381,18 +381,18 @@
             }
         });
 
-        // Vote submission handler - Saves document ID as 1, 2, 3...
+        // Vote submission handler - Saves document ID as 01, 02, 03...
         document.querySelectorAll('.vote-btn').forEach(button => {
             button.addEventListener('click', async (e) => {
                 const party = e.target.getAttribute('data-party');
                 try {
-                    // Count total docs to get the next ID number
+                    // Count total docs to generate padded 2-digit ID (01, 02, 03...)
                     const votesSnapshot = await getDocs(collection(db, "votes"));
-                    const nextId = String(votesSnapshot.size + 1);
+                    const nextId = String(votesSnapshot.size + 1).padStart(2, '0');
 
-                    // Save directly using the sequential number (1, 2, 3...) as the document ID
+                    // Save directly using padded number (01, 02, 03...) as Document ID
                     await setDoc(doc(db, "votes", nextId), {
-                        orderId: Number(nextId),
+                        orderId: nextId,
                         voter: voterInfo.name,
                         phone: voterInfo.phone,
                         party: party,
